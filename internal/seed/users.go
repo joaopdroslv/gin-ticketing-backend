@@ -7,7 +7,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 )
 
-func SeedUsersTable(db *sql.DB, amount int) error {
+func Users(db *sql.DB, amount int) error {
 	query := `
 		INSERT INTO users (name, email, birthdate)
 		VALUES (?, ?, ?)

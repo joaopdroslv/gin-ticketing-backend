@@ -19,12 +19,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
+	}
 
 	gofakeit.Seed(time.Now().UnixNano())
 
-	if err := seed.SeedUsersTable(db, 100); err != nil {
+	if err := seed.Run(db); err != nil {
 		log.Fatal(err)
 	}
 }
