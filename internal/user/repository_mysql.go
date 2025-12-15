@@ -17,7 +17,7 @@ func NewMySQLRepository(db *sql.DB) *mysqlRepository {
 
 func (r *mysqlRepository) GetAll(ctx context.Context) (*[]User, error) {
 	rows, err := r.db.QueryContext(ctx,
-		`SELECT id, email, name FROM users ORDER BY id DESC`)
+		`SELECT id, email, name, created_at, updated_at FROM users ORDER BY id DESC`)
 
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (r *mysqlRepository) GetAll(ctx context.Context) (*[]User, error) {
 
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Email, &u.Name); err != nil {
+		if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, err
 		}
 		users = append(users, u)
@@ -43,10 +43,10 @@ func (r *mysqlRepository) GetAll(ctx context.Context) (*[]User, error) {
 
 func (r *mysqlRepository) GetByID(ctx context.Context, id string) (*User, error) {
 	row := r.db.QueryRowContext(ctx,
-		`SELECT id, email, name FROM users WHERE id = ?`, id)
+		`SELECT id, email, name, created_at, updated_at FROM users WHERE id = ?`, id)
 
 	var u User
-	if err := row.Scan(&u.ID, &u.Email, &u.Name); err != nil {
+	if err := row.Scan(&u.ID, &u.Email, &u.Name, &u.CreatedAt, &u.UpdatedAt); err != nil {
 		return nil, err
 	}
 

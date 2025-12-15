@@ -1,11 +1,16 @@
 package user
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type User struct {
-	ID    string
-	Email string
-	Name  string
+	ID        string
+	Email     string
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewUser(email, name string) (*User, error) {
