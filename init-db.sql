@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- System root user
-INSERT INTO users (name, email, birthdate) VALUES ("system", "system@system.com", @active_user_status_id, "2000-01-01");
+INSERT INTO users (name, email, birthdate, status_id)
+VALUES ("system", "system@system.com", "2000-01-01", @active_user_status_id);
 
 SET @system_user_id := (
     SELECT id FROM users WHERE email = 'system@system.com' LIMIT 1
