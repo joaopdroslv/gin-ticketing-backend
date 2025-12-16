@@ -8,9 +8,19 @@ import (
 )
 
 func Users(db *sql.DB, amount int) error {
+
+	var statusID int
+
+	err := db.QueryRow(`
+		SELECT id FROM user_statuses WHERE name = 'active'
+	`).Scan(&statusID)
+	if err != nil {
+		return err
+	}
+
 	query := `
-		INSERT INTO users (name, email, birthdate)
-		VALUES (?, ?, ?)
+		INSERT INTO users (name, email, birthdate, status_id)
+		VALUES (?, ?, ?, ?)
 	`
 
 	stmt, err := db.Prepare(query)
@@ -32,6 +42,7 @@ func Users(db *sql.DB, amount int) error {
 			name,
 			email,
 			birthdate.Format("2006-01-02"),
+			statusID,
 		); err != nil {
 			return err
 		}
