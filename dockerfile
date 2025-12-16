@@ -2,18 +2,18 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# dependências
+# Handling dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# código
+# Copying all codebase
 COPY . .
 
-# build do binário (usa cmd/api)
+# Building the binary, using the cmd/api
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o api ./cmd/api
 
-# imagem final
+# Final image
 FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
