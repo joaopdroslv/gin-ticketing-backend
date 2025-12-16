@@ -13,7 +13,7 @@ import (
 func main() {
 	cfg := config.Load()
 
-	db, err := database.NewMysql(cfg.DatabaseUrl)
+	db, err := database.NewMysql(cfg.DockerDatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,16 +1,24 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
-	HttpPort    string
-	DatabaseUrl string
+	HTTPPort             string
+	DockerDatabaseURL    string
+	LocalhostDatabaseURL string
 }
 
 func Load() *Config {
+	LoadEnvFile()
+
 	return &Config{
-		HttpPort:    getEnv("HTTP_PORT", ":8080"),
-		DatabaseUrl: getEnv("DATABASE_URL", ""),
+		HTTPPort:             getEnv("HTTP_PORT", ":8080"),
+		DockerDatabaseURL:    getEnv("DOCKER_DATABASE_URL", ""),
+		LocalhostDatabaseURL: getEnv("LOCALHOST_DATABASE_URL", ""),
 	}
 }
 
@@ -19,4 +27,8 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func LoadEnvFile() {
+	_ = godotenv.Load()
 }

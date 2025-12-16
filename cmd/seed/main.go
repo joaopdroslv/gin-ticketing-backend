@@ -15,7 +15,7 @@ import (
 func main() {
 	cfg := config.Load()
 
-	db, err := sql.Open("mysql", cfg.DatabaseUrl)
+	db, err := sql.Open("mysql", cfg.LocalhostDatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
