@@ -1,18 +1,18 @@
 services:
-  gin-api:
+  ticket-io_backend:
     build:
       context: .
-      dockerfile: dockerfile
-    container_name: gin-api
+      dockerfile: dockerfile.ticket-io_backend
+    container_name: ticket-io_backend
     ports:
       - "8080:8080"
     restart: unless-stopped
     depends_on:
-      - gin-mysql
+      - ticket-io_mysql
 
-  gin-mysql:
+  ticket-io_mysql:
     image: mysql:latest
-    container_name: gin-mysql
+    container_name: ticket-io_mysql
     environment:
       MYSQL_ROOT_PASSWORD: admin!
       MYSQL_DATABASE: main
