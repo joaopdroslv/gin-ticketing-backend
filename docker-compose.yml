@@ -6,9 +6,9 @@ services:
     container_name: gin-api
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     restart: unless-stopped
+    depends_on:
+      - gin-mysql
 
   gin-mysql:
     image: mysql:latest
