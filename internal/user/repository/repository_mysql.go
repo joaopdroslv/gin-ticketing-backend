@@ -69,7 +69,7 @@ func (r *mysqlRepository) GetByID(ctx context.Context, id string) (*domain.User,
 			email,
 			name,
 			birthdate,
-			status_id
+			status_id,
 			created_at,
 			updated_at
 		FROM users
