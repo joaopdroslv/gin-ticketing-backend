@@ -30,5 +30,7 @@ func getEnv(key, fallback string) string {
 }
 
 func LoadEnvFile() {
+	// Load .env only for local execution (CLI, seeders, dev)
+
 	_ = godotenv.Load()
 }
