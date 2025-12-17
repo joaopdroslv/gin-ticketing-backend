@@ -30,7 +30,6 @@ func (r *mysqlUserRepository) GetAll(ctx context.Context) (*[]domain.User, error
 		FROM users
 		ORDER BY id DESC
 	`)
-
 	if err != nil {
 		return nil, err
 	}
@@ -115,4 +114,4 @@ func (r *mysqlUserRepository) Create(ctx context.Context, user *domain.User) (*d
 	return user, nil
 }
 
-// func (r *mysqlRepository) ChangeStatusByID(ctx context.Context, id int)
+// func (r *mysqlUserRepository) ChangeStatusByID(ctx context.Context, id int) (*domain.User, error) {}

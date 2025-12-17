@@ -15,7 +15,7 @@ func NewUserService(r repository.UserRepository) *UserService {
 	return &UserService{userRepository: r}
 }
 
-func (s *UserService) GetAll(ctx context.Context) (*[]domain.User, error) {
+func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
 	return s.userRepository.GetAll(ctx)
 }
 
