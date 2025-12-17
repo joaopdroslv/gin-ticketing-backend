@@ -1,0 +1,31 @@
+package response
+
+import "github.com/gin-gonic/gin"
+
+type APIResponse[T any] struct {
+	StatusCode int    `json:"-"`
+	Success    bool   `json:"success"`
+	Resource   T      `json:"resource,omitempty"`
+	Error      string `json:"error,omitempty"`
+}
+
+func OK[T any](c *gin.Context, data T) {
+	c.JSON(200, APIResponse[T]{
+		Success:  true,
+		Resource: data,
+	})
+}
+
+func Created[T any](c *gin.Context, data T) {
+	c.JSON(201, APIResponse[T]{
+		Success:  true,
+		Resource: data,
+	})
+}
+
+func Fail(c *gin.Context, status int, err string) {
+	c.JSON(status, APIResponse[any]{
+		Success: false,
+		Error:   err,
+	})
+}
