@@ -62,7 +62,7 @@ func (r *mysqlRepository) GetAll(ctx context.Context) (*[]domain.User, error) {
 	return &users, nil
 }
 
-func (r *mysqlRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
+func (r *mysqlRepository) GetByID(ctx context.Context, id int) (*domain.User, error) {
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
 			id,
@@ -114,3 +114,5 @@ func (r *mysqlRepository) Create(ctx context.Context, user *domain.User) (*domai
 
 	return user, nil
 }
+
+// func (r *mysqlRepository) ChangeStatusByID(ctx context.Context, id int)

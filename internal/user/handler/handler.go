@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"ticket-io/internal/user/handler/dto"
 	"ticket-io/internal/user/service"
 	"time"
@@ -28,9 +29,15 @@ func (h *Handler) GetAll(c *gin.Context) {
 }
 
 func (h *Handler) GetByID(c *gin.Context) {
-	id := c.Param("id")
+	idStr := c.Param("id")
 
-	user, err := h.service.GetByID(c.Request.Context(), id)
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	user, err := h.service.GetByID(c.Request.Context(), int(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

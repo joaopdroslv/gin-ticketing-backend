@@ -19,7 +19,7 @@ func (s *Service) GetAll(ctx context.Context) (*[]domain.User, error) {
 	return s.repository.GetAll(ctx)
 }
 
-func (s *Service) GetByID(ctx context.Context, id string) (*domain.User, error) {
+func (s *Service) GetByID(ctx context.Context, id int) (*domain.User, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
