@@ -8,9 +8,9 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"ticket-io/internal/shared/errors"
+	"ticket-io/internal/shared/errs"
 	"ticket-io/internal/user/domain"
-	"ticket-io/internal/user/handler/dto"
+	"ticket-io/internal/user/dto"
 )
 
 type mysqlUserRepository struct {
@@ -22,7 +22,7 @@ func New(db *sql.DB) *mysqlUserRepository {
 	return &mysqlUserRepository{db: db}
 }
 
-func (r *mysqlUserRepository) GetAll(ctx context.Context) ([]domain.User, error) {
+func (r *mysqlUserRepository) ListUsers(ctx context.Context) ([]domain.User, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
@@ -37,7 +37,7 @@ func (r *mysqlUserRepository) GetAll(ctx context.Context) ([]domain.User, error)
 		ORDER BY id DESC
 	`)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list users query: %w", err)
 	}
 	defer rows.Close()
 
@@ -55,19 +55,19 @@ func (r *mysqlUserRepository) GetAll(ctx context.Context) ([]domain.User, error)
 			&u.CreatedAt,
 			&u.UpdatedAt,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("list users scan: %w", err)
 		}
 		users = append(users, u)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list users rows error: %w", err)
 	}
 
 	return users, nil
 }
 
-func (r *mysqlUserRepository) GetByID(ctx context.Context, id int64) (*domain.User, error) {
+func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
@@ -93,13 +93,16 @@ func (r *mysqlUserRepository) GetByID(ctx context.Context, id int64) (*domain.Us
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	); err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrNotFound)
+		}
+		return nil, fmt.Errorf("get user id=%d scan: %w", id, err)
 	}
 
 	return &u, nil
 }
 
-func (r *mysqlUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 
 	result, err := r.db.ExecContext(ctx,
 		`INSERT INTO users (email, name, birthdate, status_id) VALUES (?, ?, ?, ?)`,
@@ -109,12 +112,12 @@ func (r *mysqlUserRepository) Create(ctx context.Context, user *domain.User) (*d
 		user.StatusID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create user exec: %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create user last insert id: %w", err)
 	}
 
 	user.ID = id
@@ -122,28 +125,28 @@ func (r *mysqlUserRepository) Create(ctx context.Context, user *domain.User) (*d
 	return user, nil
 }
 
-func (r *mysqlUserRepository) UpdateByID(ctx context.Context, id int64, data dto.UserUpdateBody) (*domain.User, error) {
+func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data dto.UserUpdateBody) (*domain.User, error) {
 
 	fields := []string{}
 	args := []any{}
 
 	if data.Name != nil {
 		fields = append(fields, "name = ?")
-		args = append(args, *data.Name)
+		args = append(args, data.Name)
 	}
 
 	if data.Email != nil {
 		fields = append(fields, "email = ?")
-		args = append(args, *data.Email)
+		args = append(args, data.Email)
 	}
 
 	if data.Birthdate != nil {
 		fields = append(fields, "birthdate = ?")
-		args = append(args, *data.Birthdate)
+		args = append(args, data.Birthdate)
 	}
 
 	if len(fields) == 0 {
-		return nil, errors.ErrNothingToUpdate
+		return nil, fmt.Errorf("update user: %w", errs.ErrNothingToUpdate)
 	}
 
 	query := fmt.Sprintf(
@@ -155,34 +158,36 @@ func (r *mysqlUserRepository) UpdateByID(ctx context.Context, id int64, data dto
 
 	res, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("update user id=%d exec: %w", id, err)
 	}
 
-	rows, _ := res.RowsAffected()
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("update user id=%d rows affected: %w", id, err)
+	}
+
 	if rows == 0 {
-		return nil, errors.ErrZeroRowsAffected
+		return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrNotFound)
 	}
 
-	return r.GetByID(ctx, id)
+	return r.GetUserByID(ctx, id)
 }
 
-func (r *mysqlUserRepository) DeleteByID(ctx context.Context, id int64) (bool, error) {
+func (r *mysqlUserRepository) DeleteUserByID(ctx context.Context, id int64) (bool, error) {
 
 	result, err := r.db.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, id)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("delete user id=%d exec: %w", id, err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return false, nil
+		return false, fmt.Errorf("delete user id=%d rows affected: %w", id, err)
 	}
 
 	if rows == 0 {
-		return false, errors.ErrZeroRowsAffected
+		return false, fmt.Errorf("user id=%d: %w", id, errs.ErrNotFound)
 	}
 
 	return true, nil
 }
-
-// func (r *mysqlUserRepository) ChangeStatusByID(ctx context.Context, id int64) (*domain.User, error) {}

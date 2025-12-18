@@ -15,21 +15,21 @@ func New(statusRepository statusrepository.StatusRepository) *StatusService {
 	return &StatusService{statusRepository: statusRepository}
 }
 
-func (s *StatusService) GetAll(ctx context.Context) ([]domain.Status, error) {
+func (s *StatusService) ListStatuses(ctx context.Context) ([]domain.Status, error) {
 
-	return s.statusRepository.GetAll(ctx)
+	return s.statusRepository.ListStatuses(ctx)
 }
 
 func (s *StatusService) GetStatusMap(ctx context.Context) (map[int64]string, error) {
 
-	user_statuses, err := s.statusRepository.GetAll(ctx)
+	userStatuses, err := s.statusRepository.ListStatuses(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	mapping := make(map[int64]string, len(user_statuses))
+	mapping := make(map[int64]string, len(userStatuses))
 
-	for _, st := range user_statuses {
+	for _, st := range userStatuses {
 		mapping[st.ID] = st.Name
 	}
 

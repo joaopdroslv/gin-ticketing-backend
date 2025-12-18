@@ -3,5 +3,5 @@ package dto
 type UserUpdateBody struct {
 	Name      *string `json:"name" binding:"omitempty,min=2"`
 	Email     *string `json:"email" binding:"omitempty,email"`
-	Birthdate *string `json:"birthdate" binding:"omitempty,datetime=2006-01-02"`
+	Birthdate *string `json:"birthdate" binding:"omitempty,email"`
 }

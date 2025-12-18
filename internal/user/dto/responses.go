@@ -10,7 +10,7 @@ type ResponseUser struct {
 
 type GetAllResponse struct {
 	Total int64          `json:"total"`
-	Items []ResponseUser `json:"items"`
+	Users []ResponseUser `json:"users"`
 }
 
 type UserDeleteResponse struct {

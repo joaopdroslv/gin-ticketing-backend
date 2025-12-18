@@ -3,68 +3,111 @@ package user
 import (
 	"context"
 	"ticket-io/internal/user/domain"
-	"ticket-io/internal/user/handler/dto"
+	"ticket-io/internal/user/dto"
+	"ticket-io/internal/user/handler/mapper"
 	userrepository "ticket-io/internal/user/repository/user"
-	statusservice "ticket-io/internal/user/service/status"
 	"time"
 )
 
 type UserService struct {
 	userRepository userrepository.UserRepository
-	statusService  statusservice.StatusService
+	statusProvider StatusProvider
 }
 
 func New(
-	userRepository userrepository.UserRepository, statusService *statusservice.StatusService,
+	userRepository userrepository.UserRepository, statusProvider StatusProvider,
 ) *UserService {
 
 	return &UserService{
 		userRepository: userRepository,
-		statusService:  *statusService,
+		statusProvider: statusProvider,
 	}
 }
 
-func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
+func (s *UserService) ListUsers(ctx context.Context) (*dto.GetAllResponse, error) {
 
-	return s.userRepository.GetAll(ctx)
-}
-
-func (s *UserService) GetAllWithStatus(ctx context.Context) ([]domain.User, int64, map[int64]string, error) {
-
-	users, err := s.userRepository.GetAll(ctx)
-	if err != nil {
-		return nil, 0, nil, err
-	}
-
-	statusMap, err := s.statusService.GetStatusMap(ctx)
-	if err != nil {
-		return nil, 0, nil, err
-	}
-
-	return users, int64(len(users)), statusMap, nil
-}
-
-func (s *UserService) GetByID(ctx context.Context, id int64) (*domain.User, error) {
-
-	return s.userRepository.GetByID(ctx, id)
-}
-
-func (s *UserService) Create(ctx context.Context, email, name string, birthdate time.Time, statusID int64) (*domain.User, error) {
-
-	user, err := domain.NewUser(email, name, birthdate, statusID)
+	users, err := s.userRepository.ListUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.userRepository.Create(ctx, user)
+	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	formattedUsers := mapper.UsersToResponseUsers(users, statusMap)
+
+	return &dto.GetAllResponse{
+		Total: int64(len(formattedUsers)),
+		Users: formattedUsers,
+	}, nil
 }
 
-func (s *UserService) UpdateByID(ctx context.Context, id int64, data dto.UserUpdateBody) (*domain.User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id int64) (*dto.ResponseUser, error) {
 
-	return s.userRepository.UpdateByID(ctx, id, data)
+	user, err := s.userRepository.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.UserToResponseUser(user, statusMap), nil
 }
 
-func (s *UserService) DeleteByID(ctx context.Context, id int64) (bool, error) {
+func (s *UserService) CreateUser(ctx context.Context, body dto.UserCreateBody) (*dto.ResponseUser, error) {
 
-	return s.userRepository.DeleteByID(ctx, id)
+	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := domain.NewUser(body.Email, body.Name, birthdate, body.StatusID)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err = s.userRepository.CreateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.UserToResponseUser(user, statusMap), nil
+}
+
+func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data dto.UserUpdateBody) (*dto.ResponseUser, error) {
+
+	user, err := s.userRepository.UpdateUserByID(ctx, id, data)
+	if err != nil {
+		return nil, err
+	}
+
+	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.UserToResponseUser(user, statusMap), nil
+}
+
+func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*dto.UserDeleteResponse, error) {
+
+	success, err := s.userRepository.DeleteUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.UserDeleteResponse{
+		ID:      id,
+		Deleted: success,
+	}, nil
 }

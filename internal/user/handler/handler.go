@@ -3,13 +3,9 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"ticket-io/internal/shared/enums"
-	"ticket-io/internal/shared/errors"
 	"ticket-io/internal/shared/responses"
-	"ticket-io/internal/user/handler/dto"
-	"ticket-io/internal/user/handler/mapper"
+	"ticket-io/internal/user/dto"
 	userservice "ticket-io/internal/user/service/user"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,78 +19,57 @@ func New(s *userservice.UserService) *UserHandler {
 	return &UserHandler{userService: s}
 }
 
-func (h *UserHandler) GetAll(c *gin.Context) {
+func (h *UserHandler) ListUsers(c *gin.Context) {
 
-	users, total, statusMap, err := h.userService.GetAllWithStatus(c.Request.Context())
+	resp, err := h.userService.ListUsers(c.Request.Context())
 	if err != nil {
-		responses.Fail(c, http.StatusInternalServerError, string(enums.ErrInternal))
+		responses.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	formatted_users := mapper.UsersToResponse(users, statusMap)
-
-	responses.OK(c,
-		dto.GetAllResponse{
-			Total: total,
-			Items: formatted_users,
-		},
-	)
+	responses.OK(c, &resp)
 }
 
-func (h *UserHandler) GetByID(c *gin.Context) {
+func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Fail(c, http.StatusInternalServerError, string(enums.ErrInvalidID))
+		responses.Fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	user, err := h.userService.GetByID(c.Request.Context(), int64(id))
+	user, err := h.userService.GetUserByID(c.Request.Context(), id)
 	if err != nil {
-		responses.Fail(c, http.StatusNotFound, string(enums.ErrNotFound))
+		responses.Fail(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	responses.OK(c, user)
+	responses.OK(c, &user)
 }
 
-func (h *UserHandler) Create(c *gin.Context) {
+func (h *UserHandler) CreateUser(c *gin.Context) {
 
 	var body dto.UserCreateBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Fail(c, http.StatusBadRequest, string(enums.ErrBadRequest))
+		responses.Fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
+	user, err := h.userService.CreateUser(c.Request.Context(), body)
 	if err != nil {
-		responses.Fail(c, http.StatusBadRequest, "The provided birthdate is invalid.")
+		responses.Fail(c, 500, err.Error())
 		return
 	}
-
-	user, err := h.userService.Create(
-		c.Request.Context(),
-		body.Email,
-		body.Name,
-		birthdate,
-		body.StatusID,
-	)
-	if err != nil {
-		responses.Fail(c, 500, string(enums.ErrInternal))
-		return
-	}
-
-	// TODO: return formatted user
 
 	responses.OK(c, user)
 }
 
-func (h *UserHandler) UpdateByID(c *gin.Context) {
+func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Fail(c, http.StatusBadRequest, string(enums.ErrInvalidID))
+		responses.Fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -105,40 +80,28 @@ func (h *UserHandler) UpdateByID(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.UpdateByID(c, id, body)
+	user, err := h.userService.UpdateUserByID(c.Request.Context(), id, body)
 	if err != nil {
-		switch err {
-		case errors.ErrNothingToUpdate:
-			responses.Fail(c, http.StatusBadRequest, string(enums.ErrBadRequest))
-		case errors.ErrZeroRowsAffected:
-			responses.Fail(c, http.StatusBadRequest, string(enums.ErrZeroRowsAffected))
-		default:
-			responses.Fail(c, http.StatusInternalServerError, string(enums.ErrInternal))
-		}
+		responses.Fail(c, 500, err.Error())
 		return
 	}
-
-	// TODO: return formatted user
 
 	responses.OK(c, user)
 }
 
-func (h *UserHandler) DeleteByID(c *gin.Context) {
+func (h *UserHandler) DeleteUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Fail(c, http.StatusBadRequest, string(enums.ErrInvalidID))
+		responses.Fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	success, err := h.userService.DeleteByID(c.Request.Context(), int64(id))
+	resp, err := h.userService.DeleteUserByID(c.Request.Context(), id)
 	if err != nil {
-		responses.Fail(c, http.StatusNotFound, string(enums.ErrNotFound))
+		responses.Fail(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	responses.OK(c, dto.UserDeleteResponse{
-		ID:      id,
-		Deleted: success,
-	})
+	responses.OK(c, resp)
 }

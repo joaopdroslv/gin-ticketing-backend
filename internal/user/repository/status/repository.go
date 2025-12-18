@@ -6,5 +6,5 @@ import (
 )
 
 type StatusRepository interface {
-	GetAll(ctx context.Context) ([]domain.Status, error)
+	ListStatuses(ctx context.Context) ([]domain.Status, error)
 }

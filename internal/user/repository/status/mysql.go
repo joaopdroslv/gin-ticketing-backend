@@ -3,6 +3,7 @@ package status
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 
@@ -18,15 +19,15 @@ func New(db *sql.DB) *mysqlStatusRepository {
 	return &mysqlStatusRepository{db: db}
 }
 
-func (r *mysqlStatusRepository) GetAll(ctx context.Context) ([]domain.Status, error) {
+func (r *mysqlStatusRepository) ListStatuses(ctx context.Context) ([]domain.Status, error) {
 
 	rows, err := r.db.QueryContext(ctx, `SELECT * FROM main.user_statuses ORDER BY id DESC`)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list user statuses query: %w", err)
 	}
 	defer rows.Close()
 
-	user_statuses := make([]domain.Status, 0)
+	userStatuses := make([]domain.Status, 0)
 
 	for rows.Next() {
 		var s domain.Status
@@ -38,14 +39,14 @@ func (r *mysqlStatusRepository) GetAll(ctx context.Context) ([]domain.Status, er
 			&s.CreatedAt,
 			&s.UpdatedAt,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("list user statuses scan: %w", err)
 		}
-		user_statuses = append(user_statuses, s)
+		userStatuses = append(userStatuses, s)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list user statuses rows error: %w", err)
 	}
 
-	return user_statuses, nil
+	return userStatuses, nil
 }

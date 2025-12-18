@@ -10,9 +10,9 @@ func RegisterRoutes(r *gin.RouterGroup, userService *user.UserService) {
 
 	userHandler := New(userService)
 
-	r.GET("/users", userHandler.GetAll)
-	r.GET("/users/:id", userHandler.GetByID)
-	r.POST("/users", userHandler.Create)
-	r.POST("/users/:id", userHandler.UpdateByID)
-	r.DELETE("/users/:id", userHandler.DeleteByID)
+	r.GET("/users", userHandler.ListUsers)
+	r.GET("/users/:id", userHandler.GetUserByID)
+	r.POST("/users", userHandler.CreateUser)
+	r.POST("/users/:id", userHandler.UpdateUserByID)
+	r.DELETE("/users/:id", userHandler.DeleteUserByID)
 }
