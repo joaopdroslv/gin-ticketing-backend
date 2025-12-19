@@ -16,6 +16,7 @@ type Config struct {
 }
 
 func Load() *Config {
+
 	LoadEnvFile()
 
 	return &Config{
