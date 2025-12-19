@@ -1,14 +1,37 @@
 package handler
 
 import (
+	"ticket-io/internal/auth/middleware"
+	"ticket-io/internal/auth/service"
+
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.RouterGroup, userHandler *UserHandler) {
+func RegisterRoutes(r *gin.RouterGroup, handler *UserHandler, accessControl service.AccessControl) {
 
-	r.GET("", userHandler.ListUsers)
-	r.GET("/:id", userHandler.GetUserByID)
-	r.POST("", userHandler.CreateUser)
-	r.PUT("/:id", userHandler.UpdateUserByID)
-	r.DELETE("/:id", userHandler.DeleteUserByID)
+	r.GET(
+		"",
+		middleware.PermissionMiddleware(accessControl, "user:list"),
+		handler.ListUsers,
+	)
+	r.GET(
+		"/:id",
+		middleware.PermissionMiddleware(accessControl, "user:read"),
+		handler.GetUserByID,
+	)
+	r.POST(
+		"",
+		middleware.PermissionMiddleware(accessControl, "user:create"),
+		handler.CreateUser,
+	)
+	r.PUT(
+		"/:id",
+		middleware.PermissionMiddleware(accessControl, "user:update"),
+		handler.UpdateUserByID,
+	)
+	r.DELETE(
+		"/:id",
+		middleware.PermissionMiddleware(accessControl, "user:delete"),
+		handler.DeleteUserByID,
+	)
 }
