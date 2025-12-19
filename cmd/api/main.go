@@ -6,6 +6,8 @@ import (
 	"ticket-io/internal/config"
 	"ticket-io/internal/database"
 
+	authmiddleware "ticket-io/internal/auth/middleware"
+
 	authhandler "ticket-io/internal/auth/handler"
 	userhandler "ticket-io/internal/user/handler"
 
@@ -16,8 +18,6 @@ import (
 	authrepository "ticket-io/internal/auth/repository"
 	statusrepository "ticket-io/internal/user/repository/status"
 	userrepository "ticket-io/internal/user/repository/user"
-
-	authmiddleware "ticket-io/internal/auth/middleware"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -64,8 +64,8 @@ func main() {
 
 	// users (protected)
 	userGroup := apiV1Group.Group("/users")
-	userGroup.Use(jwtMiddleware)
-	userhandler.RegisterRoutes(userGroup, userHandler)
+	userGroup.Use(jwtMiddleware) // Deactivating the jwt middleware temporarilly
+	userhandler.RegisterRoutes(userGroup, userHandler, authService)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "Ok"})

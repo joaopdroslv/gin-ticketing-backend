@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"strconv"
 	"ticket-io/internal/auth/service"
 
 	"github.com/gin-gonic/gin"
@@ -11,13 +10,19 @@ func PermissionMiddleware(accessControl service.AccessControl, permission string
 
 	return func(c *gin.Context) {
 
-		userIDStr := c.GetHeader("user_id") // From JWT authentication
-
-		userID, err := strconv.ParseInt(userIDStr, 10, 64)
-		if err != nil {
-			c.AbortWithStatusJSON(400, gin.H{"error": "invalid user_id"})
+		// Bypass to any system user skip permission validation
+		isSystem, _ := c.Get("is_system")
+		if isSystem == true {
+			c.Next()
 			return
 		}
+
+		userIDAny, exists := c.Get("user_id")
+		if !exists {
+			c.AbortWithStatusJSON(401, gin.H{"error": "unauthorized"})
+			return
+		}
+		userID := userIDAny.(int64)
 
 		// Skipping scope validation for now
 

@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"ticket-io/internal/auth/domain"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -20,17 +22,38 @@ func JWTAuthentication(jwtSecret string) gin.HandlerFunc {
 
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
 
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
-			return []byte(jwtSecret), nil
-		})
+		token, err := jwt.ParseWithClaims(
+			tokenStr,
+			&domain.CustomClaims{},
+			func(t *jwt.Token) (any, error) {
+				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, jwt.ErrSignatureInvalid
+				}
+				return []byte(jwtSecret), nil
+			},
+		)
 
 		if err != nil || !token.Valid {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		claims := token.Claims.(jwt.MapClaims)
-		c.Set("user_id", claims["sub"])
+		claims, ok := token.Claims.(*domain.CustomClaims)
+		if !ok {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		userID, err := strconv.ParseInt(claims.Subject, 10, 64)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		c.Set("user_id", userID)
+		c.Set("role", claims.Role)
+		c.Set("is_system", claims.Role == "system")
+
 		c.Next()
 	}
 }
