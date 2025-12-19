@@ -15,13 +15,19 @@ import (
 type UserAuthService struct {
 	repository repository.UserAuthRepository
 	jwtSecret  []byte
+	jwtTTL     time.Duration
 }
 
-func New(repository repository.UserAuthRepository, jwtSecret string) *UserAuthService {
+func New(
+	repository repository.UserAuthRepository,
+	jwtSecret string,
+	jwtTTL int64,
+) *UserAuthService {
 
 	return &UserAuthService{
 		repository: repository,
 		jwtSecret:  []byte(jwtSecret),
+		jwtTTL:     time.Duration(jwtTTL) * time.Second,
 	}
 }
 
@@ -54,9 +60,12 @@ func (s *UserAuthService) LoginUser(ctx context.Context, body dto.UserLoginBody)
 		return "", errors.New("invalid credentials")
 	}
 
+	now := time.Now()
+
 	claims := jwt.MapClaims{
 		"sub": user.ID,
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iat": now.Unix(),
+		"exp": now.Add(s.jwtTTL).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

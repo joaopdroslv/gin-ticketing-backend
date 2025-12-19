@@ -44,7 +44,7 @@ func main() {
 	// services
 	statusService := statusservice.New(statusRepo)
 	userService := userservice.New(userRepo, statusService)
-	authService := authservice.New(authRepo, cfg.JWTSecret)
+	authService := authservice.New(authRepo, cfg.JWTSecret, cfg.JWTTTL)
 
 	// handlers
 	authHandler := authhandler.New(authService)
@@ -55,11 +55,11 @@ func main() {
 
 	// routes
 
-	// auth (public/no middleware)
-	auth := apiV1Group.Group("/auth")
+	// auth (public)
+	authGroup := apiV1Group.Group("/auth")
 	{
-		auth.POST("/register", authHandler.RegisterUser)
-		auth.POST("/login", authHandler.LoginUser)
+		authGroup.POST("/register", authHandler.RegisterUser)
+		authGroup.POST("/login", authHandler.LoginUser)
 	}
 
 	// users (protected)
