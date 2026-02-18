@@ -15,7 +15,8 @@ import (
 	statusservice "ticket-io/internal/user/service/status"
 	userservice "ticket-io/internal/user/service/user"
 
-	authrepository "ticket-io/internal/auth/repository"
+	authrepository "ticket-io/internal/auth/repository/auth"
+	permissionrepository "ticket-io/internal/auth/repository/permission"
 	statusrepository "ticket-io/internal/user/repository/status"
 	userrepository "ticket-io/internal/user/repository/user"
 
@@ -41,11 +42,12 @@ func main() {
 	userRepo := userrepository.New(db)
 	statusRepo := statusrepository.New(db)
 	authRepo := authrepository.New(db)
+	permissionRepo := permissionrepository.New(db)
 
 	// services
 	statusService := statusservice.New(statusRepo)
 	userService := userservice.New(userRepo, statusService)
-	authService := authservice.New(authRepo, cfg.JWTSecret, cfg.JWTTTL)
+	authService := authservice.New(authRepo, permissionRepo, cfg.JWTSecret, cfg.JWTTTL)
 
 	// handlers
 	authHandler := authhandler.New(authService)
@@ -65,7 +67,7 @@ func main() {
 
 	// users (protected)
 	userGroup := apiV1Group.Group("/users")
-	userGroup.Use(jwtMiddleware) // Deactivating the jwt middleware temporarilly
+	userGroup.Use(jwtMiddleware)
 	userhandler.RegisterRoutes(userGroup, userHandler, authService)
 
 	r.GET("/health", func(c *gin.Context) {

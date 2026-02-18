@@ -50,9 +50,16 @@ func JWTAuthentication(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
+		// Binding info into the gin context
 		c.Set("user_id", userID)
 		c.Set("role", claims.Role)
 		c.Set("is_system", claims.Role == "system")
+
+		// log.Println(claims)
+		//
+		// value, exists := c.Get("is_system")
+		// _ = exists
+		// log.Println(value)
 
 		c.Next()
 	}

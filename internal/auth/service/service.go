@@ -5,7 +5,8 @@ import (
 	"errors"
 	"strconv"
 	"ticket-io/internal/auth/domain"
-	"ticket-io/internal/auth/repository"
+	authrepository "ticket-io/internal/auth/repository/auth"
+	permissionrepository "ticket-io/internal/auth/repository/permission"
 	"ticket-io/internal/auth/schemas"
 	"time"
 
@@ -14,21 +15,24 @@ import (
 )
 
 type UserAuthService struct {
-	repository repository.UserAuthRepository
-	jwtSecret  []byte
-	jwtTTL     time.Duration
+	userAuthRepository   authrepository.UserAuthRepository
+	permissionRepository permissionrepository.PermissionRepository
+	jwtSecret            []byte
+	jwtTTL               time.Duration
 }
 
 func New(
-	repository repository.UserAuthRepository,
+	userAuthRepository authrepository.UserAuthRepository,
+	permissionRepository permissionrepository.PermissionRepository,
 	jwtSecret string,
 	jwtTTL int64,
 ) *UserAuthService {
 
 	return &UserAuthService{
-		repository: repository,
-		jwtSecret:  []byte(jwtSecret),
-		jwtTTL:     time.Duration(jwtTTL) * time.Second,
+		userAuthRepository:   userAuthRepository,
+		permissionRepository: permissionRepository,
+		jwtSecret:            []byte(jwtSecret),
+		jwtTTL:               time.Duration(jwtTTL) * time.Second,
 	}
 }
 
@@ -47,12 +51,12 @@ func (s *UserAuthService) RegisterUser(ctx context.Context, body schemas.UserReg
 		return nil, err
 	}
 
-	return s.repository.RegisterUser(ctx, user)
+	return s.userAuthRepository.RegisterUser(ctx, user)
 }
 
 func (s *UserAuthService) LoginUser(ctx context.Context, body schemas.UserLoginBody) (string, error) {
 
-	user, err := s.repository.GetUserByEmail(ctx, body.Email)
+	user, err := s.userAuthRepository.GetUserByEmail(ctx, body.Email)
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}
@@ -74,10 +78,10 @@ func (s *UserAuthService) LoginUser(ctx context.Context, body schemas.UserLoginB
 	return token.SignedString(s.jwtSecret)
 }
 
-func (s *UserAuthService) ValidateUserPermission(ctx context.Context, userID int64, userPermission string) (bool, error) {
+func (s *UserAuthService) HasThisPermission(ctx context.Context, userID int64, userPermission string) (bool, error) {
 
 	// Step 1. Get all user's userPermissions using its ID
-	userPermissions, err := s.repository.GetUserPermissions(ctx, userID)
+	userPermissions, err := s.permissionRepository.GetPermissionsByUserID(ctx, userID)
 	if err != nil {
 		return false, err
 	}

@@ -26,7 +26,7 @@ func PermissionMiddleware(accessControl service.AccessControl, permission string
 
 		// Skipping scope validation for now
 
-		allowed, err := accessControl.ValidateUserPermission(c.Request.Context(), int64(userID), permission)
+		allowed, err := accessControl.HasThisPermission(c.Request.Context(), int64(userID), permission)
 		if err != nil {
 			c.AbortWithStatusJSON(500, gin.H{"error": "authorization error"})
 			return
