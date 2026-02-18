@@ -24,6 +24,7 @@ import (
 )
 
 func main() {
+
 	cfg := config.Load()
 
 	db, err := database.NewMysql(cfg.DockerDatabaseURL)

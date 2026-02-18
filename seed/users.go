@@ -11,16 +11,18 @@ func Users(db *sql.DB, amount int) error {
 
 	var statusID int64
 
-	err := db.QueryRow(`
-		SELECT id FROM user_statuses WHERE name = 'active'
-	`).Scan(&statusID)
+	err := db.QueryRow(`SELECT id FROM user_statuses WHERE name = 'active'`).Scan(&statusID)
 	if err != nil {
 		return err
 	}
 
 	query := `
-		INSERT INTO users (name, email, birthdate, status_id)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO users (
+			name,
+			email,
+			birthdate,
+			status_id
+		) VALUES (?, ?, ?, ?)
 	`
 
 	stmt, err := db.Prepare(query)

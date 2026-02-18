@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"ticket-io/internal/config"
-	"ticket-io/internal/seed"
+	"ticket-io/seed"
 
 	"github.com/brianvoe/gofakeit/v7"
 	_ "github.com/go-sql-driver/mysql"
