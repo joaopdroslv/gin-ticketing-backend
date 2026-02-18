@@ -27,7 +27,7 @@ func Created[T any](c *gin.Context, data T) {
 	})
 }
 
-func Fail(c *gin.Context, status int, err string) {
+func Failed(c *gin.Context, status int, err string) {
 
 	c.JSON(status, APIResponse[any]{
 		StatusCode: status,

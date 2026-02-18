@@ -23,7 +23,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 
 	resp, err := h.userService.ListUsers(c.Request.Context())
 	if err != nil {
-		responses.Fail(c, http.StatusInternalServerError, err.Error())
+		responses.Failed(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -34,13 +34,13 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Fail(c, http.StatusBadRequest, err.Error())
+		responses.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.userService.GetUserByID(c.Request.Context(), id)
 	if err != nil {
-		responses.Fail(c, http.StatusNotFound, err.Error())
+		responses.Failed(c, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -52,13 +52,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var body dto.UserCreateBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Fail(c, http.StatusBadRequest, err.Error())
+		responses.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.userService.CreateUser(c.Request.Context(), body)
 	if err != nil {
-		responses.Fail(c, 500, err.Error())
+		responses.Failed(c, 500, err.Error())
 		return
 	}
 
@@ -69,20 +69,20 @@ func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Fail(c, http.StatusBadRequest, err.Error())
+		responses.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var body dto.UserUpdateBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Fail(c, http.StatusBadRequest, err.Error())
+		responses.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.userService.UpdateUserByID(c.Request.Context(), id, body)
 	if err != nil {
-		responses.Fail(c, 500, err.Error())
+		responses.Failed(c, 500, err.Error())
 		return
 	}
 
@@ -93,13 +93,13 @@ func (h *UserHandler) DeleteUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Fail(c, http.StatusBadRequest, err.Error())
+		responses.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	resp, err := h.userService.DeleteUserByID(c.Request.Context(), id)
 	if err != nil {
-		responses.Fail(c, http.StatusNotFound, err.Error())
+		responses.Failed(c, http.StatusNotFound, err.Error())
 		return
 	}
 
