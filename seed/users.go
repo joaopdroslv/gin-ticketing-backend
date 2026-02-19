@@ -9,19 +9,20 @@ import (
 
 func Users(db *sql.DB, amount int) error {
 
-	var statusID int64
+	var defaultUserStatusID int64
 
-	err := db.QueryRow(`SELECT id FROM user_statuses WHERE name = 'active'`).Scan(&statusID)
+	// All users seeded as active
+	err := db.QueryRow(`SELECT id FROM user_statuses WHERE name = 'active'`).Scan(&defaultUserStatusID)
 	if err != nil {
 		return err
 	}
 
 	query := `
 		INSERT INTO users (
+			user_status_id,
 			name,
 			email,
-			birthdate,
-			status_id
+			birthdate
 		) VALUES (?, ?, ?, ?)
 	`
 
@@ -32,8 +33,6 @@ func Users(db *sql.DB, amount int) error {
 	defer stmt.Close()
 
 	for i := 0; i < amount; i++ {
-		name := gofakeit.Name()
-		email := gofakeit.Email()
 
 		birthdate := gofakeit.DateRange(
 			time.Now().AddDate(-80, 0, 0),
@@ -41,10 +40,10 @@ func Users(db *sql.DB, amount int) error {
 		)
 
 		if _, err := stmt.Exec(
-			name,
-			email,
+			defaultUserStatusID,
+			gofakeit.Name(),
+			gofakeit.Email(),
 			birthdate.Format("2006-01-02"),
-			statusID,
 		); err != nil {
 			return err
 		}

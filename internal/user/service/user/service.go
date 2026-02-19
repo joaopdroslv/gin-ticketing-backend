@@ -66,7 +66,7 @@ func (s *UserService) CreateUser(ctx context.Context, body schemas.UserCreateBod
 		return nil, err
 	}
 
-	user, err := domain.NewUser(body.Email, body.Name, birthdate, body.StatusID)
+	user, err := domain.NewUser(body.UserStatusID, body.Email, body.Name, birthdate)
 	if err != nil {
 		return nil, err
 	}

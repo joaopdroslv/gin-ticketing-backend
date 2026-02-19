@@ -19,7 +19,7 @@ func FormatUserToResponseUser(u *domain.User, statusName string) *schemas.Respon
 
 func UserToResponseUser(u *domain.User, statusMap map[int64]string) *schemas.ResponseUser {
 
-	return FormatUserToResponseUser(u, statusMap[u.StatusID])
+	return FormatUserToResponseUser(u, statusMap[u.UserStatusID])
 }
 
 func UsersToResponseUsers(users []domain.User, statusMap map[int64]string) []schemas.ResponseUser {
@@ -27,7 +27,7 @@ func UsersToResponseUsers(users []domain.User, statusMap map[int64]string) []sch
 	formattedUsers := make([]schemas.ResponseUser, 0, len(users))
 
 	for _, u := range users {
-		formattedUsers = append(formattedUsers, *FormatUserToResponseUser(&u, statusMap[u.StatusID]))
+		formattedUsers = append(formattedUsers, *FormatUserToResponseUser(&u, statusMap[u.UserStatusID]))
 	}
 
 	return formattedUsers

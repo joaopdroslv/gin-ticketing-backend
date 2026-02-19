@@ -31,8 +31,8 @@ func (r *mysqlUserAuthRepository) GetUserByEmail(ctx context.Context, email stri
 func (r *mysqlUserAuthRepository) RegisterUser(ctx context.Context, user *domain.UserAuth) (*domain.UserAuth, error) {
 
 	res, err := r.db.ExecContext(ctx,
-		`INSERT INTO users (name, birthdate, email, password_hash, status_id) VALUES (?, ?, ?, ?, ?)`,
-		user.Name, user.Birthdate, user.Email, user.PasswordHash, user.StatusID,
+		`INSERT INTO users (user_status_id, name, birthdate, email, password_hash) VALUES (?, ?, ?, ?, ?)`,
+		user.UserStatusID, user.Name, user.Birthdate, user.Email, user.PasswordHash,
 	)
 	if err != nil {
 		return nil, err

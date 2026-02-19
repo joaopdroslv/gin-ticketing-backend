@@ -27,10 +27,10 @@ func (r *mysqlUserRepository) ListUsers(ctx context.Context) ([]domain.User, err
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
 			id,
+			user_status_id,
 			email,
 			name,
 			birthdate,
-			status_id,
 			created_at,
 			updated_at
 		FROM users
@@ -48,10 +48,10 @@ func (r *mysqlUserRepository) ListUsers(ctx context.Context) ([]domain.User, err
 
 		if err := rows.Scan(
 			&u.ID,
+			&u.UserStatusID,
 			&u.Email,
 			&u.Name,
 			&u.Birthdate,
-			&u.StatusID,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 		); err != nil {
@@ -72,10 +72,10 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
 			id,
+			user_status_id,
 			email,
 			name,
 			birthdate,
-			status_id,
 			created_at,
 			updated_at
 		FROM users
@@ -86,10 +86,10 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 
 	if err := row.Scan(
 		&u.ID,
+		&u.UserStatusID,
 		&u.Email,
 		&u.Name,
 		&u.Birthdate,
-		&u.StatusID,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	); err != nil {
@@ -105,11 +105,11 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 
 	result, err := r.db.ExecContext(ctx,
-		`INSERT INTO users (email, name, birthdate, status_id) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO users (user_status_id, email, name, birthdate) VALUES (?, ?, ?, ?)`,
+		user.UserStatusID,
 		user.Email,
 		user.Name,
 		user.Birthdate,
-		user.StatusID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create user exec: %w", err)

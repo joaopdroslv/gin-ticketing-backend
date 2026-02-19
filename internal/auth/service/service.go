@@ -46,7 +46,7 @@ func (s *UserAuthService) RegisterUser(ctx context.Context, body schemas.UserReg
 	defaultStatusID := 1 // Creating all users with "active" status by default
 	hash, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
 
-	user, err := domain.NewUserAuth(body.Name, birthdate, int64(defaultStatusID), body.Email, string(hash))
+	user, err := domain.NewUserAuth(int64(defaultStatusID), body.Name, birthdate, body.Email, string(hash))
 	if err != nil {
 		return nil, err
 	}

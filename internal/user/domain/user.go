@@ -6,18 +6,21 @@ import (
 )
 
 type User struct {
-	ID        int64
-	Email     string
-	Name      string
-	Birthdate time.Time
-	StatusID  int64
+	ID           int64
+	UserStatusID int64
+	Email        string
+	Name         string
+	Birthdate    time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func NewUser(email, name string, birthdate time.Time, statusID int64) (*User, error) {
+func NewUser(userStatusID int64, email, name string, birthdate time.Time) (*User, error) {
 
+	if userStatusID <= 0 {
+		return nil, errors.New("user_status_id is required")
+	}
 	if email == "" {
 		return nil, errors.New("e-mail is required")
 	}
@@ -27,14 +30,11 @@ func NewUser(email, name string, birthdate time.Time, statusID int64) (*User, er
 	if birthdate.IsZero() {
 		return nil, errors.New("birthdate is required")
 	}
-	if statusID <= 0 {
-		return nil, errors.New("status_id is required")
-	}
 
 	return &User{
-		Email:     email,
-		Name:      name,
-		Birthdate: birthdate,
-		StatusID:  statusID,
+		UserStatusID: userStatusID,
+		Email:        email,
+		Name:         name,
+		Birthdate:    birthdate,
 	}, nil
 }

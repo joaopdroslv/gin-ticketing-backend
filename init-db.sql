@@ -34,7 +34,7 @@ SET @active_user_status_id := (
 
 CREATE TABLE IF NOT EXISTS users (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    status_id       BIGINT UNSIGNED NOT NULL,
+    user_status_id  BIGINT UNSIGNED NOT NULL,
 
     name            VARCHAR(128) NOT NULL,
     birthdate       DATE NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- System root user
-INSERT INTO users (name, birthdate, status_id, email, password_hash)
+INSERT INTO users (name, birthdate, user_status_id, email, password_hash)
 VALUES (
     "system",
     "2000-01-01",
