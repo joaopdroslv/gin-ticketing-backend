@@ -94,7 +94,7 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 		&u.UpdatedAt,
 	); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrNotFound)
+			return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrResourceNotFound)
 		}
 		return nil, fmt.Errorf("get user id=%d scan: %w", id, err)
 	}
@@ -105,11 +105,13 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 
 	result, err := r.db.ExecContext(ctx,
-		`INSERT INTO users (user_status_id, email, name, birthdate) VALUES (?, ?, ?, ?)`,
-		user.UserStatusID,
-		user.Email,
-		user.Name,
-		user.Birthdate,
+		`INSERT INTO users (
+			user_status_id,
+			email,
+			name,
+			birthdate
+		) VALUES (?, ?, ?, ?)`,
+		user.UserStatusID, user.Email, user.Name, user.Birthdate,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create user exec: %w", err)
@@ -167,7 +169,7 @@ func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data
 	}
 
 	if rows == 0 {
-		return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrNotFound)
+		return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrResourceNotFound)
 	}
 
 	return r.GetUserByID(ctx, id)
@@ -186,7 +188,7 @@ func (r *mysqlUserRepository) DeleteUserByID(ctx context.Context, id int64) (boo
 	}
 
 	if rows == 0 {
-		return false, fmt.Errorf("user id=%d: %w", id, errs.ErrNotFound)
+		return false, fmt.Errorf("user id=%d: %w", id, errs.ErrResourceNotFound)
 	}
 
 	return true, nil

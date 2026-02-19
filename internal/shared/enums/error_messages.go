@@ -3,9 +3,9 @@ package enums
 type ErrorMessage string
 
 const (
-	ErrInternal         ErrorMessage = "Something went wrong internally."
-	ErrNotFound         ErrorMessage = "Requested resource not found."
-	ErrZeroRowsAffected ErrorMessage = "Nothing affected with the action."
-	ErrInvalidID        ErrorMessage = "The provided ID is invalid"
-	ErrBadRequest       ErrorMessage = "Bad request, fix it and try again later."
+	InternalServerError ErrorMessage = "something went wrong internally"
+	ResourceNotFound    ErrorMessage = "requested resource not found"
+	ZeroRowsAffected    ErrorMessage = "nothing affected with the action"
+	InvalidID           ErrorMessage = "the provided id is invalid"
+	BadRequest          ErrorMessage = "bad request, fix it and try again later"
 )
