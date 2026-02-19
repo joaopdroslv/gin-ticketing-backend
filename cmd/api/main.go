@@ -56,7 +56,7 @@ func main() {
 	userHandler := userhandler.New(logger, userService)
 
 	// middlewares
-	jwtMiddleware := authmiddleware.JWTAuthentication(env.JWTSecret)
+	jwtMiddleware := authmiddleware.JWTAuthenticationMiddleware(env.JWTSecret)
 
 	// routes
 

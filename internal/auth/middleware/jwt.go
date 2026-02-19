@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func JWTAuthentication(jwtSecret string) gin.HandlerFunc {
+func JWTAuthenticationMiddleware(jwtSecret string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
