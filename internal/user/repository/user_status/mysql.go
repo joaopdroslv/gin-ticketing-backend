@@ -21,7 +21,16 @@ func New(db *sql.DB) *mysqlUserStatusRepository {
 
 func (r *mysqlUserStatusRepository) ListUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
 
-	rows, err := r.db.QueryContext(ctx, `SELECT * FROM main.user_statuses ORDER BY id DESC`)
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT
+			id,
+			name,
+			description,
+			created_at,
+			updated_at
+		FROM main.user_statuses
+		ORDER BY id DESC
+	`)
 	if err != nil {
 		return nil, fmt.Errorf("list user statuses query: %w", err)
 	}
