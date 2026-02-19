@@ -57,7 +57,11 @@ func (r *mysqlUserAuthRepository) RegisterUser(ctx context.Context, user *domain
 		return nil, err
 	}
 
-	id, _ := res.LastInsertId()
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
 	user.ID = id
 
 	return user, nil

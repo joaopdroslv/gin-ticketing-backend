@@ -37,7 +37,7 @@ func (r *mysqlUserRepository) ListUsers(ctx context.Context) ([]domain.User, err
 		ORDER BY users.id DESC
 	`)
 	if err != nil {
-		return nil, fmt.Errorf("list users query: %w", err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -55,13 +55,14 @@ func (r *mysqlUserRepository) ListUsers(ctx context.Context) ([]domain.User, err
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("list users scan: %w", err)
+			return nil, err
 		}
+
 		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("list users rows error: %w", err)
+		return nil, err
 	}
 
 	return users, nil
@@ -93,10 +94,7 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrResourceNotFound)
-		}
-		return nil, fmt.Errorf("get user id=%d scan: %w", id, err)
+		return nil, err
 	}
 
 	return &user, nil
@@ -114,12 +112,12 @@ func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User)
 		user.UserStatusID, user.Email, user.Name, user.Birthdate,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("create user exec: %w", err)
+		return nil, err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("create user last insert id: %w", err)
+		return nil, err
 	}
 
 	user.ID = id
@@ -158,18 +156,18 @@ func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data
 
 	args = append(args, id)
 
-	res, err := r.db.ExecContext(ctx, query, args...)
+	result, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("update user id=%d exec: %w", id, err)
+		return nil, err
 	}
 
-	rows, err := res.RowsAffected()
+	rows, err := result.RowsAffected()
 	if err != nil {
-		return nil, fmt.Errorf("update user id=%d rows affected: %w", id, err)
+		return nil, err
 	}
 
 	if rows == 0 {
-		return nil, fmt.Errorf("user id=%d: %w", id, errs.ErrResourceNotFound)
+		return nil, errs.ErrZeroRowsAffected
 	}
 
 	return r.GetUserByID(ctx, id)
@@ -179,16 +177,16 @@ func (r *mysqlUserRepository) DeleteUserByID(ctx context.Context, id int64) (boo
 
 	result, err := r.db.ExecContext(ctx, `DELETE FROM main.users WHERE users.id = ?`, id)
 	if err != nil {
-		return false, fmt.Errorf("delete user id=%d exec: %w", id, err)
+		return false, err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return false, fmt.Errorf("delete user id=%d rows affected: %w", id, err)
+		return false, err
 	}
 
 	if rows == 0 {
-		return false, fmt.Errorf("user id=%d: %w", id, errs.ErrResourceNotFound)
+		return false, errs.ErrZeroRowsAffected
 	}
 
 	return true, nil

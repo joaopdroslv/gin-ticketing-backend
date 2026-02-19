@@ -47,6 +47,7 @@ func (r *mysqlPermissionRepository) GetPermissionsByUserID(ctx context.Context, 
 		); err != nil {
 			return nil, err
 		}
+
 		permissions = append(permissions, permission)
 	}
 

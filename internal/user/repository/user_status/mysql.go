@@ -3,7 +3,6 @@ package userstatus
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	_ "github.com/lib/pq"
 
@@ -32,7 +31,7 @@ func (r *mysqlUserStatusRepository) ListUserStatuses(ctx context.Context) ([]mod
 		ORDER BY user_statuses.id DESC
 	`)
 	if err != nil {
-		return nil, fmt.Errorf("list user statuses query: %w", err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -48,13 +47,14 @@ func (r *mysqlUserStatusRepository) ListUserStatuses(ctx context.Context) ([]mod
 			&userStatus.CreatedAt,
 			&userStatus.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("list user statuses scan: %w", err)
+			return nil, err
 		}
+
 		userStatuses = append(userStatuses, userStatus)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("list user statuses rows: %w", err)
+		return nil, err
 	}
 
 	return userStatuses, nil
