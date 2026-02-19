@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Status struct {
+type UserStatus struct {
 	ID          int64
 	Name        string
 	Description *string

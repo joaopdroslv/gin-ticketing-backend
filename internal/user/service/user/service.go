@@ -10,17 +10,17 @@ import (
 )
 
 type UserService struct {
-	userRepository userrepository.UserRepository
-	statusProvider StatusProvider
+	userRepository     userrepository.UserRepository
+	userStatusProvider UserStatusProvider
 }
 
 func New(
-	userRepository userrepository.UserRepository, statusProvider StatusProvider,
+	userRepository userrepository.UserRepository, statusProvider UserStatusProvider,
 ) *UserService {
 
 	return &UserService{
-		userRepository: userRepository,
-		statusProvider: statusProvider,
+		userRepository:     userRepository,
+		userStatusProvider: statusProvider,
 	}
 }
 
@@ -31,7 +31,7 @@ func (s *UserService) ListUsers(ctx context.Context) (*schemas.GetAllResponse, e
 		return nil, err
 	}
 
-	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	statusMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*schemas.Respo
 		return nil, err
 	}
 
-	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	statusMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *UserService) CreateUser(ctx context.Context, body schemas.UserCreateBod
 		return nil, err
 	}
 
-	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	statusMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas
 		return nil, err
 	}
 
-	statusMap, err := s.statusProvider.GetStatusMap(ctx)
+	statusMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
 	if err != nil {
 		return nil, err
 	}

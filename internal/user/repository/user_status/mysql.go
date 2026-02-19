@@ -1,4 +1,4 @@
-package status
+package userstatus
 
 import (
 	"context"
@@ -10,16 +10,16 @@ import (
 	"go-gin-ticketing-backend/internal/user/models"
 )
 
-type mysqlStatusRepository struct {
+type mysqlUserStatusRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *mysqlStatusRepository {
+func New(db *sql.DB) *mysqlUserStatusRepository {
 
-	return &mysqlStatusRepository{db: db}
+	return &mysqlUserStatusRepository{db: db}
 }
 
-func (r *mysqlStatusRepository) ListStatuses(ctx context.Context) ([]models.Status, error) {
+func (r *mysqlUserStatusRepository) ListUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
 
 	rows, err := r.db.QueryContext(ctx, `SELECT * FROM main.user_statuses ORDER BY id DESC`)
 	if err != nil {
@@ -27,10 +27,10 @@ func (r *mysqlStatusRepository) ListStatuses(ctx context.Context) ([]models.Stat
 	}
 	defer rows.Close()
 
-	userStatuses := make([]models.Status, 0)
+	userStatuses := make([]models.UserStatus, 0)
 
 	for rows.Next() {
-		var s models.Status
+		var s models.UserStatus
 
 		if err := rows.Scan(
 			&s.ID,

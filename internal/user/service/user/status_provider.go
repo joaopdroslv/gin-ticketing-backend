@@ -2,6 +2,6 @@ package user
 
 import "context"
 
-type StatusProvider interface {
-	GetStatusMap(ctx context.Context) (map[int64]string, error)
+type UserStatusProvider interface {
+	GetUserStatusesMap(ctx context.Context) (map[int64]string, error)
 }

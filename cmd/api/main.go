@@ -12,13 +12,13 @@ import (
 	userhandler "go-gin-ticketing-backend/internal/user/handler"
 
 	authservice "go-gin-ticketing-backend/internal/auth/service"
-	statusservice "go-gin-ticketing-backend/internal/user/service/status"
 	userservice "go-gin-ticketing-backend/internal/user/service/user"
+	userstatusservice "go-gin-ticketing-backend/internal/user/service/user_status"
 
 	authrepository "go-gin-ticketing-backend/internal/auth/repository/auth"
 	permissionrepository "go-gin-ticketing-backend/internal/auth/repository/permission"
-	statusrepository "go-gin-ticketing-backend/internal/user/repository/status"
 	userrepository "go-gin-ticketing-backend/internal/user/repository/user"
+	userstatusrepository "go-gin-ticketing-backend/internal/user/repository/user_status"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -40,13 +40,13 @@ func main() {
 
 	// repositories
 	userRepo := userrepository.New(db)
-	statusRepo := statusrepository.New(db)
+	userStatusRepo := userstatusrepository.New(db)
 	authRepo := authrepository.New(db)
 	permissionRepo := permissionrepository.New(db)
 
 	// services
-	statusService := statusservice.New(statusRepo)
-	userService := userservice.New(userRepo, statusService)
+	userStatusService := userstatusservice.New(userStatusRepo)
+	userService := userservice.New(userRepo, userStatusService)
 	authService := authservice.New(authRepo, permissionRepo, cfg.JWTSecret, cfg.JWTTTL)
 
 	// handlers
