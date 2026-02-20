@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"errors"
-	"go-gin-ticketing-backend/internal/shared/responses"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/user/schemas"
 	userservice "go-gin-ticketing-backend/internal/user/service/user"
@@ -31,25 +30,25 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
 	var paginationQuery sharedschemas.PaginationQuery
 	if err := c.ShouldBindQuery(&paginationQuery); err != nil {
-		responses.Failed(c, http.StatusBadRequest, "invalid query params")
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid query params")
 		return
 	}
 	paginationQuery.Normalize()
 
 	resp, err := h.userService.GetAllUsers(c.Request.Context(), paginationQuery)
 	if err != nil {
-		responses.Failed(c, http.StatusInternalServerError, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	responses.OK(c, &resp)
+	sharedschemas.OK(c, &resp)
 }
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -57,7 +56,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	if err != nil {
 		// Do not treat sql in the handler
 		if errors.Is(err, sql.ErrNoRows) {
-			responses.OK(c, "user not found")
+			sharedschemas.OK(c, "user not found")
 			return
 		}
 
@@ -69,11 +68,11 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 			"error", err,
 			"user_id", id,
 		)
-		responses.Failed(c, http.StatusInternalServerError, "internal server error")
+		sharedschemas.Failed(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	responses.OK(c, &user)
+	sharedschemas.OK(c, &user)
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
@@ -81,56 +80,56 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var body schemas.CreateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.userService.CreateUser(c.Request.Context(), body)
 	if err != nil {
-		responses.Failed(c, 500, err.Error())
+		sharedschemas.Failed(c, 500, err.Error())
 		return
 	}
 
-	responses.OK(c, &user)
+	sharedschemas.OK(c, &user)
 }
 
 func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var body schemas.UpdateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.userService.UpdateUserByID(c.Request.Context(), id, body)
 	if err != nil {
-		responses.Failed(c, 500, err.Error())
+		sharedschemas.Failed(c, 500, err.Error())
 		return
 	}
 
-	responses.OK(c, &user)
+	sharedschemas.OK(c, &user)
 }
 
 func (h *UserHandler) DeleteUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	resp, err := h.userService.DeleteUserByID(c.Request.Context(), id)
 	if err != nil {
-		responses.Failed(c, http.StatusNotFound, err.Error())
+		sharedschemas.Failed(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	responses.OK(c, &resp)
+	sharedschemas.OK(c, &resp)
 }

@@ -3,7 +3,7 @@ package handler
 import (
 	"go-gin-ticketing-backend/internal/auth/schemas"
 	"go-gin-ticketing-backend/internal/auth/service"
-	"go-gin-ticketing-backend/internal/shared/responses"
+	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,16 +23,16 @@ func (h *UserAuthHandler) RegisterUser(c *gin.Context) {
 	var body schemas.UserRegisterBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.service.RegisterUser(c, body)
 	if err != nil {
-		responses.Failed(c, http.StatusInternalServerError, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, err.Error())
 	}
 
-	responses.OK(c, gin.H{"id": user.ID})
+	sharedschemas.OK(c, gin.H{"id": user.ID})
 }
 
 func (h *UserAuthHandler) LoginUser(c *gin.Context) {
@@ -40,15 +40,15 @@ func (h *UserAuthHandler) LoginUser(c *gin.Context) {
 	var body schemas.UserLoginBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		responses.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	token, err := h.service.LoginUser(c, body)
 	if err != nil {
-		responses.Failed(c, http.StatusInternalServerError, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	responses.OK(c, gin.H{"token": token})
+	sharedschemas.OK(c, gin.H{"token": token})
 }

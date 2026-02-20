@@ -1,4 +1,4 @@
-package responses
+package schemas
 
 import "github.com/gin-gonic/gin"
 
