@@ -6,24 +6,38 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Users(db *sql.DB, amount int) error {
 
-	query := `
-		INSERT INTO users (
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	userCredentialQuery := `INSERT INTO main.user_credentials (email, password_hash) VALUES (?, ?)`
+	userQuery := `
+		INSERT INTO main.users (
+			user_credential_id,
 			user_status_id,
 			name,
-			email,
 			birthdate
 		) VALUES (?, ?, ?, ?)
 	`
 
-	stmt, err := db.Prepare(query)
+	userCredentialStmt, err := tx.Prepare(userCredentialQuery)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer userCredentialStmt.Close()
+
+	userStmt, err := tx.Prepare(userQuery)
+	if err != nil {
+		return err
+	}
+	defer userStmt.Close()
 
 	for i := 0; i < amount; i++ {
 
@@ -31,15 +45,33 @@ func Users(db *sql.DB, amount int) error {
 			time.Now().AddDate(-80, 0, 0),
 			time.Now().AddDate(-18, 0, 0),
 		)
+		email := gofakeit.Email()
+		password := gofakeit.Password(true, true, true, true, false, 12)
+		passwordHash, _ := bcrypt.GenerateFromPassword([]byte(password), 12)
 
-		if _, err := stmt.Exec(
-			int64(enums.PasswordCreation),
-			gofakeit.Name(),
-			gofakeit.Email(),
-			birthdate.Format("2006-01-02"),
-		); err != nil {
+		res, err := userCredentialStmt.Exec(email, passwordHash)
+		if err != nil {
 			return err
 		}
+
+		userCredentialID, err := res.LastInsertId()
+		if err != nil {
+			return err
+		}
+
+		_, err = userStmt.Exec(
+			userCredentialID,
+			int64(enums.Active),
+			gofakeit.Name(),
+			birthdate.Format("2006-01-02"),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
 	}
 
 	return nil
