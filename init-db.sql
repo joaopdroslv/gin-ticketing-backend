@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS users (
     birthdate       DATE NOT NULL,
     -- Authentication fields
     email           VARCHAR(128) UNIQUE NOT NULL,
-    password_hash   VARCHAR(255) NOT NULL,
+    password_hash   VARCHAR(255) DEFAULT NULL,
 
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
