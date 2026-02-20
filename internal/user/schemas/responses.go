@@ -1,5 +1,7 @@
 package schemas
 
+import sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
+
 type ResponseUser struct {
 	ID         int64  `json:"id"`
 	Name       string `json:"name"`
@@ -9,8 +11,8 @@ type ResponseUser struct {
 }
 
 type GetAllUsersResponse struct {
-	Total int64          `json:"total"`
-	Users []ResponseUser `json:"users"`
+	Items      []ResponseUser                   `json:"items"`
+	Pagination sharedschemas.ResponsePagination `json:"pagination"`
 }
 
 type DeleteUserResponse struct {

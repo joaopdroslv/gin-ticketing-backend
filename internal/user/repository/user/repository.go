@@ -9,7 +9,7 @@ import (
 )
 
 type UserRepository interface {
-	GetAllUsers(ctx context.Context, pagination *shareddomain.Pagination) ([]domain.User, error)
+	GetAllUsers(ctx context.Context, pagination *shareddomain.Pagination) ([]domain.User, *int64, error)
 	GetUserByID(ctx context.Context, id int64) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (*domain.User, error)
 	UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*domain.User, error)

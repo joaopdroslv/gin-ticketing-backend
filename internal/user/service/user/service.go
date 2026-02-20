@@ -30,7 +30,7 @@ func (s *UserService) GetAllUsers(ctx context.Context, paginationQuery sharedsch
 
 	pagination := shareddomain.NewPagination(paginationQuery.Page, paginationQuery.Limit)
 
-	users, err := s.userRepository.GetAllUsers(ctx, pagination)
+	users, total, err := s.userRepository.GetAllUsers(ctx, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,13 @@ func (s *UserService) GetAllUsers(ctx context.Context, paginationQuery sharedsch
 	responseUsers := utils.DomainUsersToResponseUsers(users, userStatusesMap)
 
 	return &schemas.GetAllUsersResponse{
-		Total: int64(len(responseUsers)),
-		Users: responseUsers,
+		Items: responseUsers,
+		Pagination: sharedschemas.ResponsePagination{
+			Page:      pagination.Page,
+			PageTotal: int64(len(users)),
+			Limit:     pagination.Limit,
+			Total:     *total,
+		},
 	}, nil
 }
 

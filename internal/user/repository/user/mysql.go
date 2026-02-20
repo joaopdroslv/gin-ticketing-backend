@@ -23,7 +23,7 @@ func New(db *sql.DB) *mysqlUserRepository {
 	return &mysqlUserRepository{db: db}
 }
 
-func (r *mysqlUserRepository) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]domain.User, error) {
+func (r *mysqlUserRepository) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]domain.User, *int64, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
@@ -33,21 +33,24 @@ func (r *mysqlUserRepository) GetAllUsers(ctx context.Context, pagination *share
 			users.name,
 			users.birthdate,
 			users.created_at,
-			users.updated_at
+			users.updated_at,
+			COUNT(*) OVER() AS total_count
 		FROM main.users
 		ORDER BY users.id DESC
 		LIMIT ?
 		OFFSET ?
 	`, pagination.Limit, pagination.Offset)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 
 	users := make([]domain.User, 0)
+	var total int64
 
 	for rows.Next() {
 		var user domain.User
+		var totalCount int64
 
 		if err := rows.Scan(
 			&user.ID,
@@ -57,18 +60,22 @@ func (r *mysqlUserRepository) GetAllUsers(ctx context.Context, pagination *share
 			&user.Birthdate,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&totalCount,
 		); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
+		if total == 0 {
+			total = totalCount
+		}
 		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return users, nil
+	return users, &total, nil
 }
 
 func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
