@@ -11,22 +11,36 @@ import (
 	"time"
 )
 
+type UserStatusProvider interface {
+	GetUserStatusesMap(ctx context.Context) (map[int64]string, error)
+}
+
 type UserService struct {
-	userRepository     userrepository.UserRepository
-	userStatusProvider UserStatusProvider
+	userRepository  userrepository.UserRepository
+	userStatusesMap map[int64]string
 }
 
 func New(
-	userRepository userrepository.UserRepository, userStatusProvider UserStatusProvider,
-) *UserService {
+	ctx context.Context,
+	userRepository userrepository.UserRepository,
+	userStatusProvider UserStatusProvider,
+) (*UserService, error) {
+
+	userStatusesMap, err := userStatusProvider.GetUserStatusesMap(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &UserService{
-		userRepository:     userRepository,
-		userStatusProvider: userStatusProvider,
-	}
+		userRepository:  userRepository,
+		userStatusesMap: userStatusesMap,
+	}, nil
 }
 
-func (s *UserService) GetAllUsers(ctx context.Context, paginationQuery sharedschemas.PaginationQuery) (*schemas.GetAllUsersResponse, error) {
+func (s *UserService) GetAllUsers(
+	ctx context.Context,
+	paginationQuery sharedschemas.PaginationQuery,
+) (*schemas.GetAllUsersResponse, error) {
 
 	pagination := shareddomain.NewPagination(paginationQuery.Page, paginationQuery.Limit)
 
@@ -35,15 +49,8 @@ func (s *UserService) GetAllUsers(ctx context.Context, paginationQuery sharedsch
 		return nil, err
 	}
 
-	userStatusesMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	responseUsers := utils.DomainUsersToResponseUsers(users, userStatusesMap)
-
 	return &schemas.GetAllUsersResponse{
-		Items: responseUsers,
+		Items: utils.DomainUsersToResponseUsers(users, s.userStatusesMap),
 		Pagination: sharedschemas.ResponsePagination{
 			Page:      pagination.Page,
 			PageTotal: int64(len(users)),
@@ -60,12 +67,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*schemas.Respo
 		return nil, err
 	}
 
-	userStatusesMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.DomainUserToResponseUser(user, userStatusesMap), nil
+	return utils.DomainUserToResponseUser(user, s.userStatusesMap), nil
 }
 
 func (s *UserService) CreateUser(ctx context.Context, body schemas.CreateUserBody) (*schemas.ResponseUser, error) {
@@ -85,12 +87,7 @@ func (s *UserService) CreateUser(ctx context.Context, body schemas.CreateUserBod
 		return nil, err
 	}
 
-	userStatusesMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.DomainUserToResponseUser(user, userStatusesMap), nil
+	return utils.DomainUserToResponseUser(user, s.userStatusesMap), nil
 }
 
 func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*schemas.ResponseUser, error) {
@@ -100,12 +97,7 @@ func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas
 		return nil, err
 	}
 
-	userStatusesMap, err := s.userStatusProvider.GetUserStatusesMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.DomainUserToResponseUser(user, userStatusesMap), nil
+	return utils.DomainUserToResponseUser(user, s.userStatusesMap), nil
 }
 
 func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*schemas.DeleteUserResponse, error) {

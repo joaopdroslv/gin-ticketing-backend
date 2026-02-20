@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"go-gin-ticketing-backend/internal/config"
@@ -48,7 +49,11 @@ func main() {
 
 	// services
 	userStatusService := userstatusservice.New(userStatusRepo)
-	userService := userservice.New(userRepo, userStatusService)
+	ctx := context.Background()
+	userService, err := userservice.New(ctx, userRepo, userStatusService)
+	if err != nil {
+		log.Fatal("failed to create the user service")
+	}
 	authService := authservice.New(authRepo, permissionRepo, env.JWTSecret, env.JWTTTL)
 
 	// handlers
