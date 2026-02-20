@@ -5,7 +5,7 @@ import (
 	"errors"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/user/schemas"
-	userservice "go-gin-ticketing-backend/internal/user/service/user"
+	userservice "go-gin-ticketing-backend/internal/user/service"
 	"log/slog"
 	"net/http"
 	"strconv"

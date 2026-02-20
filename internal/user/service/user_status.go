@@ -1,16 +1,16 @@
-package userstatus
+package service
 
 import (
 	"context"
 	"go-gin-ticketing-backend/internal/user/models"
-	userstatusrepository "go-gin-ticketing-backend/internal/user/repository/user_status"
+	userrepository "go-gin-ticketing-backend/internal/user/repository"
 )
 
 type UserStatusService struct {
-	userStatusRepository userstatusrepository.UserStatusRepository
+	userStatusRepository userrepository.UserStatusRepository
 }
 
-func New(userStatusRepository userstatusrepository.UserStatusRepository) *UserStatusService {
+func NewUserStatusService(userStatusRepository userrepository.UserStatusRepository) *UserStatusService {
 
 	return &UserStatusService{userStatusRepository: userStatusRepository}
 }

@@ -1,4 +1,4 @@
-package user
+package repository
 
 import (
 	"context"
@@ -14,16 +14,16 @@ import (
 	"go-gin-ticketing-backend/internal/user/schemas"
 )
 
-type mysqlUserRepository struct {
+type UserRepositoryMysql struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *mysqlUserRepository {
+func NewUserRepositoryMysql(db *sql.DB) *UserRepositoryMysql {
 
-	return &mysqlUserRepository{db: db}
+	return &UserRepositoryMysql{db: db}
 }
 
-func (r *mysqlUserRepository) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]domain.User, *int64, error) {
+func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]domain.User, *int64, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
@@ -78,7 +78,7 @@ func (r *mysqlUserRepository) GetAllUsers(ctx context.Context, pagination *share
 	return users, &total, nil
 }
 
-func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
+func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
@@ -110,7 +110,7 @@ func (r *mysqlUserRepository) GetUserByID(ctx context.Context, id int64) (*domai
 	return &user, nil
 }
 
-func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *UserRepositoryMysql) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 
 	result, err := r.db.ExecContext(ctx,
 		`INSERT INTO users (
@@ -135,7 +135,7 @@ func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User)
 	return user, nil
 }
 
-func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*domain.User, error) {
+func (r *UserRepositoryMysql) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*domain.User, error) {
 
 	query, args, err := r.formatUpdateUserQuery(id, data)
 	if err != nil {
@@ -159,7 +159,7 @@ func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data
 	return r.GetUserByID(ctx, id)
 }
 
-func (r mysqlUserRepository) formatUpdateUserQuery(id int64, data schemas.UpdateUserBody) (string, []any, error) {
+func (r UserRepositoryMysql) formatUpdateUserQuery(id int64, data schemas.UpdateUserBody) (string, []any, error) {
 
 	fields := []string{}
 	args := []any{}
@@ -193,7 +193,7 @@ func (r mysqlUserRepository) formatUpdateUserQuery(id int64, data schemas.Update
 	return query, args, nil
 }
 
-func (r *mysqlUserRepository) DeleteUserByID(ctx context.Context, id int64) (bool, error) {
+func (r *UserRepositoryMysql) DeleteUserByID(ctx context.Context, id int64) (bool, error) {
 
 	result, err := r.db.ExecContext(ctx, `DELETE FROM main.users WHERE users.id = ?`, id)
 	if err != nil {

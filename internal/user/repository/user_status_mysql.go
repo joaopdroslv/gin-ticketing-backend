@@ -1,4 +1,4 @@
-package userstatus
+package repository
 
 import (
 	"context"
@@ -9,16 +9,16 @@ import (
 	"go-gin-ticketing-backend/internal/user/models"
 )
 
-type mysqlUserStatusRepository struct {
+type UserStatusRepositoryMysql struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *mysqlUserStatusRepository {
+func NewUserStatusRepositoryMysql(db *sql.DB) *UserStatusRepositoryMysql {
 
-	return &mysqlUserStatusRepository{db: db}
+	return &UserStatusRepositoryMysql{db: db}
 }
 
-func (r *mysqlUserStatusRepository) ListUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
+func (r *UserStatusRepositoryMysql) ListUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT

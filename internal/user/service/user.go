@@ -1,11 +1,11 @@
-package user
+package service
 
 import (
 	"context"
 	shareddomain "go-gin-ticketing-backend/internal/shared/domain"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/user/domain"
-	userrepository "go-gin-ticketing-backend/internal/user/repository/user"
+	userrepository "go-gin-ticketing-backend/internal/user/repository"
 	"go-gin-ticketing-backend/internal/user/schemas"
 	"go-gin-ticketing-backend/internal/user/utils"
 	"time"
@@ -20,7 +20,7 @@ type UserService struct {
 	userStatusesMap map[int64]string
 }
 
-func New(
+func NewUserService(
 	ctx context.Context,
 	userRepository userrepository.UserRepository,
 	userStatusProvider UserStatusProvider,

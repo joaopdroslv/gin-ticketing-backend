@@ -13,13 +13,10 @@ import (
 	userhandler "go-gin-ticketing-backend/internal/user/handler"
 
 	authservice "go-gin-ticketing-backend/internal/auth/service"
-	userservice "go-gin-ticketing-backend/internal/user/service/user"
-	userstatusservice "go-gin-ticketing-backend/internal/user/service/user_status"
+	userservice "go-gin-ticketing-backend/internal/user/service"
 
-	authrepository "go-gin-ticketing-backend/internal/auth/repository/auth"
-	permissionrepository "go-gin-ticketing-backend/internal/auth/repository/permission"
-	userrepository "go-gin-ticketing-backend/internal/user/repository/user"
-	userstatusrepository "go-gin-ticketing-backend/internal/user/repository/user_status"
+	authrepository "go-gin-ticketing-backend/internal/auth/repository"
+	userrepository "go-gin-ticketing-backend/internal/user/repository"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -42,15 +39,15 @@ func main() {
 	apiV1Group := r.Group("/api/v1")
 
 	// repositories
-	userRepo := userrepository.New(db)
-	userStatusRepo := userstatusrepository.New(db)
-	authRepo := authrepository.New(db)
-	permissionRepo := permissionrepository.New(db)
+	userRepo := userrepository.NewUserRepositoryMysql(db)
+	userStatusRepo := userrepository.NewUserStatusRepositoryMysql(db)
+	authRepo := authrepository.NewUserAuthRepositoryMysql(db)
+	permissionRepo := authrepository.NewPermissionRepositoryMysql(db)
 
 	// services
-	userStatusService := userstatusservice.New(userStatusRepo)
+	userStatusService := userservice.NewUserStatusService(userStatusRepo)
 	ctx := context.Background()
-	userService, err := userservice.New(ctx, userRepo, userStatusService)
+	userService, err := userservice.NewUserService(ctx, userRepo, userStatusService)
 	if err != nil {
 		log.Fatal("failed to create the user service")
 	}

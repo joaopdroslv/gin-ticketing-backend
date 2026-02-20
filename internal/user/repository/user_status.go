@@ -1,4 +1,4 @@
-package userstatus
+package repository
 
 import (
 	"context"

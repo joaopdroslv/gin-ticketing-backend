@@ -1,4 +1,4 @@
-package permission
+package repository
 
 import (
 	"context"
@@ -6,16 +6,16 @@ import (
 	"go-gin-ticketing-backend/internal/auth/models"
 )
 
-type mysqlPermissionRepository struct {
+type PermissionRepositoryMysql struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *mysqlPermissionRepository {
+func NewPermissionRepositoryMysql(db *sql.DB) *PermissionRepositoryMysql {
 
-	return &mysqlPermissionRepository{db: db}
+	return &PermissionRepositoryMysql{db: db}
 }
 
-func (r *mysqlPermissionRepository) GetPermissionsByUserID(ctx context.Context, id int64) ([]models.Permission, error) {
+func (r *PermissionRepositoryMysql) GetPermissionsByUserID(ctx context.Context, id int64) ([]models.Permission, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT

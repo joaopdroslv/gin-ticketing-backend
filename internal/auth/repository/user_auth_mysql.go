@@ -1,4 +1,4 @@
-package auth
+package repository
 
 import (
 	"context"
@@ -6,16 +6,16 @@ import (
 	"go-gin-ticketing-backend/internal/auth/domain"
 )
 
-type mysqlUserAuthRepository struct {
+type UserAuthRepositoryMysql struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *mysqlUserAuthRepository {
+func NewUserAuthRepositoryMysql(db *sql.DB) *UserAuthRepositoryMysql {
 
-	return &mysqlUserAuthRepository{db: db}
+	return &UserAuthRepositoryMysql{db: db}
 }
 
-func (r *mysqlUserAuthRepository) GetUserByEmail(ctx context.Context, email string) (*domain.UserAuth, error) {
+func (r *UserAuthRepositoryMysql) GetUserByEmail(ctx context.Context, email string) (*domain.UserAuth, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
@@ -41,7 +41,7 @@ func (r *mysqlUserAuthRepository) GetUserByEmail(ctx context.Context, email stri
 	return &userAuth, nil
 }
 
-func (r *mysqlUserAuthRepository) RegisterUser(ctx context.Context, user *domain.UserAuth) (*domain.UserAuth, error) {
+func (r *UserAuthRepositoryMysql) RegisterUser(ctx context.Context, user *domain.UserAuth) (*domain.UserAuth, error) {
 
 	res, err := r.db.ExecContext(ctx,
 		`INSERT INTO main.users (
