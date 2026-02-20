@@ -2,20 +2,13 @@ package seed
 
 import (
 	"database/sql"
+	"go-gin-ticketing-backend/internal/shared/enums"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 )
 
 func Users(db *sql.DB, amount int) error {
-
-	var defaultUserStatusID int64
-
-	// All users seeded as active
-	err := db.QueryRow(`SELECT id FROM user_statuses WHERE name = 'active'`).Scan(&defaultUserStatusID)
-	if err != nil {
-		return err
-	}
 
 	query := `
 		INSERT INTO users (
@@ -40,7 +33,7 @@ func Users(db *sql.DB, amount int) error {
 		)
 
 		if _, err := stmt.Exec(
-			defaultUserStatusID,
+			int64(enums.PasswordCreation),
 			gofakeit.Name(),
 			gofakeit.Email(),
 			birthdate.Format("2006-01-02"),
