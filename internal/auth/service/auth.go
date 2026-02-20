@@ -14,63 +14,65 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserAuthService struct {
-	userAuthRepository   authrepository.UserAuthRepository
+type AuthService struct {
+	authRepository       authrepository.AuthRepository
 	permissionRepository authrepository.PermissionRepository
 	jwtSecret            []byte
 	jwtTTL               time.Duration
 }
 
 func New(
-	userAuthRepository authrepository.UserAuthRepository,
+	authRepository authrepository.AuthRepository,
 	permissionRepository authrepository.PermissionRepository,
 	jwtSecret string,
 	jwtTTL int64,
-) *UserAuthService {
+) *AuthService {
 
-	return &UserAuthService{
-		userAuthRepository:   userAuthRepository,
+	return &AuthService{
+		authRepository:       authRepository,
 		permissionRepository: permissionRepository,
 		jwtSecret:            []byte(jwtSecret),
 		jwtTTL:               time.Duration(jwtTTL) * time.Second,
 	}
 }
 
-func (s *UserAuthService) RegisterUser(ctx context.Context, body schemas.UserRegisterBody) (*domain.UserAuth, error) {
+func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBody) (*domain.UserCredential, error) {
 
 	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
 	if err != nil {
 		return nil, err
 	}
 
-	defaultStatusID := 1 // Creating all users with "active" status by default
-	hash, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
+	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
 
-	user, err := domain.NewUserAuth(int64(defaultStatusID), body.Name, birthdate, body.Email, string(hash))
+	user, err := domain.NewUserCredential(
+		int64(enums.EmailConfirmation),
+		body.Name,
+		birthdate,
+		body.Email,
+		string(passwordHash),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.userAuthRepository.RegisterUser(ctx, user)
+	return s.authRepository.RegisterUser(ctx, user)
 }
 
-func (s *UserAuthService) LoginUser(ctx context.Context, body schemas.UserLoginBody) (string, error) {
+func (s *AuthService) LoginUser(ctx context.Context, body schemas.LoginBody) (string, error) {
 
-	user, err := s.userAuthRepository.GetUserByEmail(ctx, body.Email)
+	user, err := s.authRepository.GetUserByEmail(ctx, body.Email)
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}
 
-	switch user.UserStatusID {
+	switch user.UserInfo.UserStatusID {
 	case int64(enums.Inactive):
 		return "", errors.New("invalid credentials, inactive account")
-
 	case int64(enums.PasswordCreation):
 		return "", errors.New("invalid credentials, password creation pending")
-
 	case int64(enums.EmailConfirmation):
 		return "", errors.New("invalid credentials, email confirmation pending")
-
 	case int64(enums.DeletedAccount):
 		return "", errors.New("invalid credentials, deleted account")
 	}
@@ -82,7 +84,7 @@ func (s *UserAuthService) LoginUser(ctx context.Context, body schemas.UserLoginB
 	claims := schemas.CustomClaims{
 		Role: "system", // Change this later, setting up all users as role=system
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   strconv.FormatInt(user.ID, 10),
+			Subject:   strconv.FormatInt(user.UserInfo.ID, 10),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.jwtTTL)),
 		},
@@ -92,7 +94,7 @@ func (s *UserAuthService) LoginUser(ctx context.Context, body schemas.UserLoginB
 	return token.SignedString(s.jwtSecret)
 }
 
-func (s *UserAuthService) HasThisPermission(ctx context.Context, userID int64, userPermission string) (bool, error) {
+func (s *AuthService) HasThisPermission(ctx context.Context, userID int64, userPermission string) (bool, error) {
 
 	// Step 1. Get all user's userPermissions using its ID
 	userPermissions, err := s.permissionRepository.GetPermissionsByUserID(ctx, userID)

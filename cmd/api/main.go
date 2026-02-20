@@ -41,7 +41,7 @@ func main() {
 	// repositories
 	userRepo := userrepository.NewUserRepositoryMysql(db)
 	userStatusRepo := userrepository.NewUserStatusRepositoryMysql(db)
-	authRepo := authrepository.NewUserAuthRepositoryMysql(db)
+	authRepo := authrepository.NewAuthRepositoryMysql(db)
 	permissionRepo := authrepository.NewPermissionRepositoryMysql(db)
 
 	// services

@@ -5,16 +5,22 @@ import (
 	"time"
 )
 
-type UserAuth struct {
+// TODO: Think about this, maybe its not needed
+type UserInfo struct {
 	ID           int64
 	UserStatusID int64
 	Name         string
 	Birthdate    time.Time
-	Email        string
-	PasswordHash string
 }
 
-func NewUserAuth(userStatusID int64, name string, birthdate time.Time, email, passwordHash string) (*UserAuth, error) {
+type UserCredential struct {
+	ID           int64
+	Email        string
+	PasswordHash string
+	UserInfo     UserInfo
+}
+
+func NewUserCredential(userStatusID int64, name string, birthdate time.Time, email, passwordHash string) (*UserCredential, error) {
 
 	if userStatusID <= 0 {
 		return nil, errors.New("user_status_id is required")
@@ -32,11 +38,13 @@ func NewUserAuth(userStatusID int64, name string, birthdate time.Time, email, pa
 		return nil, errors.New("password_hash is required")
 	}
 
-	return &UserAuth{
-		Name:         name,
-		Birthdate:    birthdate,
-		UserStatusID: userStatusID,
+	return &UserCredential{
 		Email:        email,
 		PasswordHash: passwordHash,
+		UserInfo: UserInfo{
+			UserStatusID: userStatusID,
+			Name:         name,
+			Birthdate:    birthdate,
+		},
 	}, nil
 }
