@@ -22,7 +22,7 @@ func New(db *sql.DB) *mysqlUserRepository {
 	return &mysqlUserRepository{db: db}
 }
 
-func (r *mysqlUserRepository) ListUsers(ctx context.Context) ([]domain.User, error) {
+func (r *mysqlUserRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
@@ -125,7 +125,31 @@ func (r *mysqlUserRepository) CreateUser(ctx context.Context, user *domain.User)
 	return user, nil
 }
 
-func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data schemas.UserUpdateBody) (*domain.User, error) {
+func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*domain.User, error) {
+
+	query, args, err := r.formatUpdateUserQuery(id, data)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	if rows == 0 {
+		return nil, errs.ErrZeroRowsAffected
+	}
+
+	return r.GetUserByID(ctx, id)
+}
+
+func (r mysqlUserRepository) formatUpdateUserQuery(id int64, data schemas.UpdateUserBody) (string, []any, error) {
 
 	fields := []string{}
 	args := []any{}
@@ -146,7 +170,7 @@ func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data
 	}
 
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("update user: %w", errs.ErrNothingToUpdate)
+		return "", nil, fmt.Errorf("update user: %w", errs.ErrNothingToUpdate)
 	}
 
 	query := fmt.Sprintf(
@@ -156,21 +180,7 @@ func (r *mysqlUserRepository) UpdateUserByID(ctx context.Context, id int64, data
 
 	args = append(args, id)
 
-	result, err := r.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return nil, err
-	}
-
-	if rows == 0 {
-		return nil, errs.ErrZeroRowsAffected
-	}
-
-	return r.GetUserByID(ctx, id)
+	return query, args, nil
 }
 
 func (r *mysqlUserRepository) DeleteUserByID(ctx context.Context, id int64) (bool, error) {

@@ -8,9 +8,9 @@ import (
 )
 
 type UserRepository interface {
-	ListUsers(ctx context.Context) ([]domain.User, error)
+	GetAllUsers(ctx context.Context) ([]domain.User, error)
 	GetUserByID(ctx context.Context, id int64) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (*domain.User, error)
-	UpdateUserByID(ctx context.Context, id int64, data schemas.UserUpdateBody) (*domain.User, error)
+	UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*domain.User, error)
 	DeleteUserByID(ctx context.Context, id int64) (bool, error)
 }

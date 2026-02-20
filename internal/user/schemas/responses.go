@@ -8,12 +8,12 @@ type ResponseUser struct {
 	UserStatus string `json:"user_status"`
 }
 
-type GetAllResponse struct {
+type GetAllUsersResponse struct {
 	Total int64          `json:"total"`
 	Users []ResponseUser `json:"users"`
 }
 
-type UserDeleteResponse struct {
+type DeleteUserResponse struct {
 	ID      int64 `json:"id"`
 	Deleted bool  `json:"deleted"`
 }

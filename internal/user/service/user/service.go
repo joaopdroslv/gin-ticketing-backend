@@ -15,18 +15,18 @@ type UserService struct {
 }
 
 func New(
-	userRepository userrepository.UserRepository, statusProvider UserStatusProvider,
+	userRepository userrepository.UserRepository, userStatusProvider UserStatusProvider,
 ) *UserService {
 
 	return &UserService{
 		userRepository:     userRepository,
-		userStatusProvider: statusProvider,
+		userStatusProvider: userStatusProvider,
 	}
 }
 
-func (s *UserService) ListUsers(ctx context.Context) (*schemas.GetAllResponse, error) {
+func (s *UserService) GetAllUsers(ctx context.Context) (*schemas.GetAllUsersResponse, error) {
 
-	users, err := s.userRepository.ListUsers(ctx)
+	users, err := s.userRepository.GetAllUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *UserService) ListUsers(ctx context.Context) (*schemas.GetAllResponse, e
 
 	responseUsers := utils.DomainUsersToResponseUsers(users, userStatusesMap)
 
-	return &schemas.GetAllResponse{
+	return &schemas.GetAllUsersResponse{
 		Total: int64(len(responseUsers)),
 		Users: responseUsers,
 	}, nil
@@ -59,7 +59,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*schemas.Respo
 	return utils.DomainUserToResponseUser(user, userStatusesMap), nil
 }
 
-func (s *UserService) CreateUser(ctx context.Context, body schemas.UserCreateBody) (*schemas.ResponseUser, error) {
+func (s *UserService) CreateUser(ctx context.Context, body schemas.CreateUserBody) (*schemas.ResponseUser, error) {
 
 	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *UserService) CreateUser(ctx context.Context, body schemas.UserCreateBod
 	return utils.DomainUserToResponseUser(user, userStatusesMap), nil
 }
 
-func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas.UserUpdateBody) (*schemas.ResponseUser, error) {
+func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*schemas.ResponseUser, error) {
 
 	user, err := s.userRepository.UpdateUserByID(ctx, id, data)
 	if err != nil {
@@ -99,14 +99,14 @@ func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas
 	return utils.DomainUserToResponseUser(user, userStatusesMap), nil
 }
 
-func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*schemas.UserDeleteResponse, error) {
+func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*schemas.DeleteUserResponse, error) {
 
 	success, err := s.userRepository.DeleteUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &schemas.UserDeleteResponse{
+	return &schemas.DeleteUserResponse{
 		ID:      id,
 		Deleted: success,
 	}, nil

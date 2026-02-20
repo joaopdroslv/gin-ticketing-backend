@@ -1,13 +1,13 @@
 package schemas
 
-type UserCreateBody struct {
+type CreateUserBody struct {
 	UserStatusID int64  `json:"user_status_id" binding:"required"`
 	Name         string `json:"name" binding:"required"`
 	Email        string `json:"email" binding:"required,email"`
 	Birthdate    string `json:"birthdate" binding:"required"`
 }
 
-type UserUpdateBody struct {
+type UpdateUserBody struct {
 	Name      *string `json:"name" binding:"omitempty,min=2"`
 	Email     *string `json:"email" binding:"omitempty,email"`
 	Birthdate *string `json:"birthdate" binding:"omitempty,email"`

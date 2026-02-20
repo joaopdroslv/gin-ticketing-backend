@@ -26,9 +26,9 @@ func New(logger *slog.Logger, userService *userservice.UserService) *UserHandler
 	}
 }
 
-func (h *UserHandler) ListUsers(c *gin.Context) {
+func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
-	resp, err := h.userService.ListUsers(c.Request.Context())
+	resp, err := h.userService.GetAllUsers(c.Request.Context())
 	if err != nil {
 		responses.Failed(c, http.StatusInternalServerError, err.Error())
 		return
@@ -70,7 +70,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
 
-	var body schemas.UserCreateBody
+	var body schemas.CreateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		responses.Failed(c, http.StatusBadRequest, err.Error())
@@ -94,7 +94,7 @@ func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 		return
 	}
 
-	var body schemas.UserUpdateBody
+	var body schemas.UpdateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		responses.Failed(c, http.StatusBadRequest, err.Error())

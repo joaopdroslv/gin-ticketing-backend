@@ -12,7 +12,7 @@ func RegisterRoutes(r *gin.RouterGroup, handler *UserHandler, accessControl serv
 	r.GET(
 		"",
 		middleware.PermissionMiddleware(accessControl, "user:list"),
-		handler.ListUsers,
+		handler.GetAllUsers,
 	)
 	r.GET(
 		"/:id",
