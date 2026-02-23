@@ -9,16 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserAuthHandler struct {
+type AuthHandler struct {
 	authService *service.AuthService
 }
 
-func New(authService *service.AuthService) *UserAuthHandler {
+func New(authService *service.AuthService) *AuthHandler {
 
-	return &UserAuthHandler{authService: authService}
+	return &AuthHandler{authService: authService}
 }
 
-func (h *UserAuthHandler) RegisterUser(c *gin.Context) {
+func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	var body schemas.RegisterBody
 
@@ -35,7 +35,7 @@ func (h *UserAuthHandler) RegisterUser(c *gin.Context) {
 	sharedschemas.OK(c, gin.H{"message": "user registered successfully"})
 }
 
-func (h *UserAuthHandler) LoginUser(c *gin.Context) {
+func (h *AuthHandler) LoginUser(c *gin.Context) {
 
 	var body schemas.LoginBody
 
