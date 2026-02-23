@@ -20,7 +20,7 @@ func NewEnv() *Env {
 	LoadEnvFile()
 
 	return &Env{
-		HTTPPort:             getEnv("HTTP_PORT", ":8080"),
+		HTTPPort:             getEnv("HTTP_PORT", "8080"),
 		DockerDatabaseURL:    getEnv("DOCKER_DATABASE_URL", ""),
 		LocalhostDatabaseURL: getEnv("LOCALHOST_DATABASE_URL", ""),
 		JWTSecret:            getEnv("JWT_SECRET", ""),

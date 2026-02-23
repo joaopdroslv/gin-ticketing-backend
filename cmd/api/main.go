@@ -65,8 +65,8 @@ func main() {
 	// auth (public)
 	authGroup := apiV1Group.Group("/auth")
 	{
-		authGroup.POST("/register", authHandler.RegisterUser)
 		authGroup.POST("/login", authHandler.LoginUser)
+		authGroup.POST("/register", authHandler.RegisterUser)
 	}
 
 	// users (protected)
@@ -78,5 +78,5 @@ func main() {
 		c.JSON(200, gin.H{"status": "Ok"})
 	})
 
-	r.Run(":8080")
+	r.Run(":" + env.HTTPPort)
 }
