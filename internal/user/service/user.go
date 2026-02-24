@@ -7,7 +7,6 @@ import (
 	"go-gin-ticketing-backend/internal/user/domain"
 	userrepository "go-gin-ticketing-backend/internal/user/repository"
 	"go-gin-ticketing-backend/internal/user/schemas"
-	"go-gin-ticketing-backend/internal/user/utils"
 	"time"
 )
 
@@ -50,7 +49,7 @@ func (s *UserService) GetAllUsers(
 	}
 
 	return &schemas.GetAllUsersResponse{
-		Items: utils.DomainUsersToResponseUsers(users, s.userStatusesMap),
+		Items: s.domainUsersToResponseUsers(users, s.userStatusesMap),
 		Pagination: sharedschemas.ResponsePagination{
 			Page:      pagination.Page,
 			PageTotal: int64(len(users)),
@@ -67,7 +66,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*schemas.Respo
 		return nil, err
 	}
 
-	return utils.DomainUserToResponseUser(user, s.userStatusesMap), nil
+	return s.domainUserToResponseUser(user, s.userStatusesMap), nil
 }
 
 func (s *UserService) CreateUser(ctx context.Context, body schemas.CreateUserBody) (*schemas.ResponseUser, error) {
@@ -87,7 +86,7 @@ func (s *UserService) CreateUser(ctx context.Context, body schemas.CreateUserBod
 		return nil, err
 	}
 
-	return utils.DomainUserToResponseUser(user, s.userStatusesMap), nil
+	return s.domainUserToResponseUser(user, s.userStatusesMap), nil
 }
 
 func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*schemas.ResponseUser, error) {
@@ -97,7 +96,7 @@ func (s *UserService) UpdateUserByID(ctx context.Context, id int64, data schemas
 		return nil, err
 	}
 
-	return utils.DomainUserToResponseUser(user, s.userStatusesMap), nil
+	return s.domainUserToResponseUser(user, s.userStatusesMap), nil
 }
 
 func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*schemas.DeleteUserResponse, error) {
@@ -111,4 +110,43 @@ func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*schemas.De
 		ID:      id,
 		Deleted: success,
 	}, nil
+}
+
+func (s *UserService) toResponseUser(
+	domainUser *domain.User,
+	userStatusName string,
+) *schemas.ResponseUser {
+
+	return &schemas.ResponseUser{
+		ID:         domainUser.ID,
+		Name:       domainUser.Name,
+		Email:      domainUser.Email,
+		Birthdate:  domainUser.Birthdate.Format(time.RFC3339),
+		UserStatus: userStatusName,
+	}
+}
+
+func (s *UserService) domainUserToResponseUser(
+	domainUser *domain.User,
+	userStatusesMap map[int64]string,
+) *schemas.ResponseUser {
+
+	return s.toResponseUser(domainUser, userStatusesMap[domainUser.UserStatusID])
+}
+
+func (s *UserService) domainUsersToResponseUsers(
+	domainUsers []domain.User,
+	userStatusesMap map[int64]string,
+) []schemas.ResponseUser {
+
+	responseUsers := make([]schemas.ResponseUser, 0, len(domainUsers))
+
+	for _, u := range domainUsers {
+		responseUsers = append(
+			responseUsers,
+			*s.toResponseUser(&u, userStatusesMap[u.UserStatusID]),
+		)
+	}
+
+	return responseUsers
 }
