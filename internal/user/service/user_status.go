@@ -15,14 +15,14 @@ func NewUserStatusService(userStatusRepository userrepository.UserStatusReposito
 	return &UserStatusService{userStatusRepository: userStatusRepository}
 }
 
-func (s *UserStatusService) ListUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
+func (s *UserStatusService) GetAllUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
 
-	return s.userStatusRepository.ListUserStatuses(ctx)
+	return s.userStatusRepository.GetAllUserStatuses(ctx)
 }
 
 func (s *UserStatusService) GetUserStatusesMap(ctx context.Context) (map[int64]string, error) {
 
-	userStatuses, err := s.userStatusRepository.ListUserStatuses(ctx)
+	userStatuses, err := s.userStatusRepository.GetAllUserStatuses(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ func NewUserStatusRepositoryMysql(db *sql.DB) *UserStatusRepositoryMysql {
 	return &UserStatusRepositoryMysql{db: db}
 }
 
-func (r *UserStatusRepositoryMysql) ListUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
+func (r *UserStatusRepositoryMysql) GetAllUserStatuses(ctx context.Context) ([]models.UserStatus, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT

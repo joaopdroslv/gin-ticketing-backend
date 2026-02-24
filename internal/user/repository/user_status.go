@@ -6,5 +6,5 @@ import (
 )
 
 type UserStatusRepository interface {
-	ListUserStatuses(ctx context.Context) ([]models.UserStatus, error)
+	GetAllUserStatuses(ctx context.Context) ([]models.UserStatus, error)
 }
