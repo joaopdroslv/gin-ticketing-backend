@@ -23,19 +23,24 @@ func NewUserRepositoryMysql(db *sql.DB) *UserRepositoryMysql {
 	return &UserRepositoryMysql{db: db}
 }
 
-func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]models.User, *int64, error) {
+func (r *UserRepositoryMysql) GetAllUsers(
+	ctx context.Context,
+	pagination *shareddoamin.Pagination,
+) ([]models.User, *int64, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
 			users.id,
+			users.user_credential_id,
 			users.user_status_id,
-			users.email,
 			users.name,
 			users.birthdate,
+			user_credentials.email,
 			users.created_at,
 			users.updated_at,
 			COUNT(*) OVER() AS total_count
 		FROM main.users
+		JOIN main.user_credentials ON user_credentials.id = users.user_credential_id
 		ORDER BY users.id DESC
 		LIMIT ?
 		OFFSET ?
@@ -54,10 +59,11 @@ func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *share
 
 		if err := rows.Scan(
 			&user.ID,
+			&user.UserCredentialID,
 			&user.UserStatusID,
-			&user.Email,
 			&user.Name,
 			&user.Birthdate,
+			&user.Email,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 			&totalCount,
@@ -83,13 +89,15 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
 			users.id,
+			users.user_credential_id,
 			users.user_status_id,
-			users.email,
 			users.name,
 			users.birthdate,
+			user_credentials.email,
 			users.created_at,
 			users.updated_at
 		FROM main.users
+		JOIN main.user_credentials ON user_credentials.id = users.user_credential_id
 		WHERE users.id = ?
 	`, id)
 
@@ -97,8 +105,8 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 
 	if err := row.Scan(
 		&user.ID,
+		&user.UserCredentialID,
 		&user.UserStatusID,
-		&user.Email,
 		&user.Name,
 		&user.Birthdate,
 		&user.CreatedAt,
@@ -110,6 +118,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 	return &user, nil
 }
 
+// DEPRECATED: should create a record in users and user_credentials tables simultaneously
 func (r *UserRepositoryMysql) CreateUser(
 	ctx context.Context,
 	data *dto.UserCreateData,
@@ -118,12 +127,10 @@ func (r *UserRepositoryMysql) CreateUser(
 	result, err := r.db.ExecContext(ctx,
 		`INSERT INTO users (
 			users.user_status_id,
-			users.email,
 			users.name,
 			users.birthdate
-		) VALUES (?, ?, ?, ?)`,
+		) VALUES (?, ?, ?)`,
 		data.UserStatusID,
-		data.Email,
 		data.Name,
 		data.Birthdate,
 	)

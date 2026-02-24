@@ -5,8 +5,8 @@ import sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 type ResponseUser struct {
 	ID         int64  `json:"id"`
 	Name       string `json:"name"`
-	Email      string `json:"email"`
 	Birthdate  string `json:"birthdate"`
+	Email      string `json:"email"`
 	UserStatus string `json:"user_status"`
 }
 

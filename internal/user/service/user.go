@@ -152,8 +152,8 @@ func (s *UserService) transformUserModelIntoResponseUser(
 	return &schemas.ResponseUser{
 		ID:         userModel.ID,
 		Name:       userModel.Name,
-		Email:      userModel.Email,
 		Birthdate:  userModel.Birthdate.Format(time.RFC3339),
+		Email:      userModel.Email,
 		UserStatus: userStatusName,
 	}
 }
