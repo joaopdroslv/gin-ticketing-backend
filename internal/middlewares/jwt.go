@@ -1,4 +1,4 @@
-package middleware
+package middlewares
 
 import (
 	"go-gin-ticketing-backend/internal/auth/schemas"

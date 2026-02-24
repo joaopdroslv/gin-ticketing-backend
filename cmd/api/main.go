@@ -7,7 +7,7 @@ import (
 	"go-gin-ticketing-backend/internal/config"
 	"go-gin-ticketing-backend/internal/database"
 
-	authmiddleware "go-gin-ticketing-backend/internal/auth/middleware"
+	"go-gin-ticketing-backend/internal/middlewares"
 
 	authhandler "go-gin-ticketing-backend/internal/auth/handler"
 	userhandler "go-gin-ticketing-backend/internal/user/handler"
@@ -58,7 +58,7 @@ func main() {
 	userHandler := userhandler.New(logger, userService)
 
 	// middlewares
-	jwtMiddleware := authmiddleware.JWTAuthenticationMiddleware(env.JWTSecret)
+	jwtMiddleware := middlewares.JWTAuthenticationMiddleware(env.JWTSecret)
 
 	// routes
 

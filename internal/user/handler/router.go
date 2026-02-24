@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"go-gin-ticketing-backend/internal/auth/middleware"
 	"go-gin-ticketing-backend/internal/auth/service"
+	"go-gin-ticketing-backend/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,27 +11,27 @@ func RegisterRoutes(r *gin.RouterGroup, handler *UserHandler, accessControl serv
 
 	r.GET(
 		"",
-		middleware.PermissionMiddleware(accessControl, "user:list"),
+		middlewares.PermissionMiddleware(accessControl, "user:list"),
 		handler.GetAllUsers,
 	)
 	r.GET(
 		"/:id",
-		middleware.PermissionMiddleware(accessControl, "user:read"),
+		middlewares.PermissionMiddleware(accessControl, "user:read"),
 		handler.GetUserByID,
 	)
 	r.POST(
 		"",
-		middleware.PermissionMiddleware(accessControl, "user:create"),
+		middlewares.PermissionMiddleware(accessControl, "user:create"),
 		handler.CreateUser,
 	)
 	r.PUT(
 		"/:id",
-		middleware.PermissionMiddleware(accessControl, "user:update"),
+		middlewares.PermissionMiddleware(accessControl, "user:update"),
 		handler.UpdateUserByID,
 	)
 	r.DELETE(
 		"/:id",
-		middleware.PermissionMiddleware(accessControl, "user:delete"),
+		middlewares.PermissionMiddleware(accessControl, "user:delete"),
 		handler.DeleteUserByID,
 	)
 }
