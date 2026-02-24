@@ -8,11 +8,15 @@ import (
 )
 
 type Env struct {
-	HTTPPort             string
+	HTTPPort string
+
 	DockerDatabaseURL    string
 	LocalhostDatabaseURL string
-	JWTSecret            string
-	JWTTTL               int64
+
+	JWTSecret string
+	JWTTTL    int64
+
+	RequestsPerMinute int64
 }
 
 func NewEnv() *Env {
@@ -25,6 +29,7 @@ func NewEnv() *Env {
 		LocalhostDatabaseURL: getEnv("LOCALHOST_DATABASE_URL", ""),
 		JWTSecret:            getEnv("JWT_SECRET", ""),
 		JWTTTL:               getEnvInt64("JWT_TTL", 3600),
+		RequestsPerMinute:    getEnvInt64("REQUESTS_PER_MINUTE", 10),
 	}
 }
 

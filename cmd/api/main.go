@@ -38,12 +38,7 @@ func main() {
 
 	// middlewares
 	jwtMiddleware := middlewares.JWTAuthenticationMiddleware(env.JWTSecret)
-
-	// TODO: move this to env/config?
-	const maxRequests int64 = 10
-	const window time.Duration = time.Minute
-
-	rateLimitMiddleware := middlewares.RateLimitMiddleware(maxRequests, window)
+	rateLimitMiddleware := middlewares.RateLimitMiddleware(env.RequestsPerMinute, time.Minute)
 
 	// All routes covered by the rate limit middleware
 	r.Use(rateLimitMiddleware)
