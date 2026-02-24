@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"go-gin-ticketing-backend/internal/auth/models"
+	"go-gin-ticketing-backend/internal/access_control/models"
 )
 
 type PermissionRepository interface {

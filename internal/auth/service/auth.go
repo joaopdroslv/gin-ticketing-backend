@@ -16,24 +16,21 @@ import (
 )
 
 type AuthService struct {
-	authRepository       authrepository.AuthRepository
-	permissionRepository authrepository.PermissionRepository
-	jwtSecret            []byte
-	jwtTTL               time.Duration
+	authRepository authrepository.AuthRepository
+	jwtSecret      []byte
+	jwtTTL         time.Duration
 }
 
 func New(
 	authRepository authrepository.AuthRepository,
-	permissionRepository authrepository.PermissionRepository,
 	jwtSecret string,
 	jwtTTL int64,
 ) *AuthService {
 
 	return &AuthService{
-		authRepository:       authRepository,
-		permissionRepository: permissionRepository,
-		jwtSecret:            []byte(jwtSecret),
-		jwtTTL:               time.Duration(jwtTTL) * time.Second,
+		authRepository: authRepository,
+		jwtSecret:      []byte(jwtSecret),
+		jwtTTL:         time.Duration(jwtTTL) * time.Second,
 	}
 }
 
@@ -89,27 +86,6 @@ func (s *AuthService) LoginUser(ctx context.Context, body schemas.LoginBody) (st
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(s.jwtSecret)
-}
-
-func (s *AuthService) HasThisPermission(ctx context.Context, userID int64, userPermission string) (bool, error) {
-
-	// Step 1. Get all user's userPermissions using its ID
-	userPermissions, err := s.permissionRepository.GetPermissionsByUserID(ctx, userID)
-	if err != nil {
-		return false, err
-	}
-
-	// Step 2. Creating a permissions map (with empty structs) for each user permissions
-	permissionsMap := make(map[string]struct{})
-
-	for _, permission := range userPermissions {
-		permissionsMap[permission.Name] = struct{}{}
-	}
-
-	// Step 3. Validating if the user has the required permission
-	_, ok := permissionsMap[userPermission]
-
-	return ok, nil
 }
 
 func (s *AuthService) validateUserStatus(userCredential *models.UserCredential) error {

@@ -1,13 +1,17 @@
 package handler
 
 import (
-	"go-gin-ticketing-backend/internal/auth/service"
+	accessservice "go-gin-ticketing-backend/internal/access_control/service"
 	"go-gin-ticketing-backend/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.RouterGroup, handler *UserHandler, accessControl service.AccessControl) {
+func RegisterRoutes(
+	r *gin.RouterGroup,
+	handler *UserHandler,
+	accessControl accessservice.AccessControl,
+) {
 
 	r.GET(
 		"",

@@ -12,9 +12,11 @@ import (
 	authhandler "go-gin-ticketing-backend/internal/auth/handler"
 	userhandler "go-gin-ticketing-backend/internal/user/handler"
 
+	accessservice "go-gin-ticketing-backend/internal/access_control/service"
 	authservice "go-gin-ticketing-backend/internal/auth/service"
 	userservice "go-gin-ticketing-backend/internal/user/service"
 
+	accessrepository "go-gin-ticketing-backend/internal/access_control/repository"
 	authrepository "go-gin-ticketing-backend/internal/auth/repository"
 	userrepository "go-gin-ticketing-backend/internal/user/repository"
 
@@ -49,7 +51,7 @@ func main() {
 	userRepo := userrepository.NewUserRepositoryMysql(db)
 	userStatusRepo := userrepository.NewUserStatusRepositoryMysql(db)
 	authRepo := authrepository.NewAuthRepositoryMysql(db)
-	permissionRepo := authrepository.NewPermissionRepositoryMysql(db)
+	permissionRepo := accessrepository.NewPermissionRepositoryMysql(db)
 
 	// services
 	userStatusService := userservice.NewUserStatusService(userStatusRepo)
@@ -58,7 +60,8 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to create the user service")
 	}
-	authService := authservice.New(authRepo, permissionRepo, env.JWTSecret, env.JWTTTL)
+	authService := authservice.New(authRepo, env.JWTSecret, env.JWTTTL)
+	permissionService := accessservice.NewPermissionService(permissionRepo)
 
 	// handlers
 	authHandler := authhandler.New(authService)
@@ -76,7 +79,7 @@ func main() {
 	// users (protected)
 	userGroup := apiV1Group.Group("/users")
 	userGroup.Use(jwtMiddleware)
-	userhandler.RegisterRoutes(userGroup, userHandler, authService)
+	userhandler.RegisterRoutes(userGroup, userHandler, permissionService)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "Ok"})

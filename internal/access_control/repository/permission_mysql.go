@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"go-gin-ticketing-backend/internal/auth/models"
+	"go-gin-ticketing-backend/internal/access_control/models"
 )
 
 type PermissionRepositoryMysql struct {

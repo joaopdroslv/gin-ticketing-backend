@@ -1,12 +1,15 @@
 package middlewares
 
 import (
-	"go-gin-ticketing-backend/internal/auth/service"
+	accessservice "go-gin-ticketing-backend/internal/access_control/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func PermissionMiddleware(accessControl service.AccessControl, permission string) gin.HandlerFunc {
+func PermissionMiddleware(
+	accessControl accessservice.AccessControl,
+	requiredPermission string,
+) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
@@ -26,7 +29,11 @@ func PermissionMiddleware(accessControl service.AccessControl, permission string
 
 		// Skipping scope validation for now
 
-		allowed, err := accessControl.HasThisPermission(c.Request.Context(), int64(userID), permission)
+		allowed, err := accessControl.UserHasPermission(
+			c.Request.Context(),
+			int64(userID),
+			requiredPermission,
+		)
 		if err != nil {
 			c.AbortWithStatusJSON(500, gin.H{"error": "authorization error"})
 			return
