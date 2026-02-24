@@ -37,7 +37,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
 	resp, err := h.userService.GetAllUsers(c.Request.Context(), paginationQuery)
 	if err != nil {
-		sharedschemas.Failed(c, http.StatusInternalServerError, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
 		return
 	}
 

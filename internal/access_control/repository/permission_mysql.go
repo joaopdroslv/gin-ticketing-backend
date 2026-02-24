@@ -53,3 +53,33 @@ func (r *PermissionRepositoryMysql) GetPermissionsByUserID(ctx context.Context, 
 
 	return permissions, nil
 }
+
+func (r *PermissionRepositoryMysql) UserHasPermission(
+	ctx context.Context,
+	id int64,
+	permission string,
+) (bool, error) {
+
+	var exists int64
+
+	err := r.db.QueryRowContext(ctx, `
+		SELECT 1
+		FROM main.users
+		JOIN main.user_roles ON user_roles.user_id = users.id
+		JOIN main.role_permissions ON role_permissions.role_id = user_roles.role_id
+		JOIN main.permissions ON permissions.id = role_permissions.permission_id
+		WHERE TRUE
+			AND users.id = ?
+			AND permissions = '?'
+		LIMIT 1
+	`, id, permission).Scan(&exists)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}

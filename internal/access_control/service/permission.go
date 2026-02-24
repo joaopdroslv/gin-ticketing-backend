@@ -20,21 +20,5 @@ func (s *PermissionService) UserHasPermission(
 	requiredPermission string,
 ) (bool, error) {
 
-	// Step 1. Get all user's userPermissions using its ID
-	userPermissions, err := s.permissionRepository.GetPermissionsByUserID(ctx, userID)
-	if err != nil {
-		return false, err
-	}
-
-	// Step 2. Creating a permissions map (with empty structs) for each user permissions
-	permissionsMap := make(map[string]struct{})
-
-	for _, permission := range userPermissions {
-		permissionsMap[permission.Name] = struct{}{}
-	}
-
-	// Step 3. Validating if the user has the required permission
-	_, ok := permissionsMap[requiredPermission]
-
-	return ok, nil
+	return s.permissionRepository.UserHasPermission(ctx, userID, requiredPermission)
 }
