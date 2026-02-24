@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"go-gin-ticketing-backend/internal/auth/domain"
+	"go-gin-ticketing-backend/internal/auth/models"
 )
 
 type AuthRepositoryMysql struct {
@@ -18,30 +18,26 @@ func NewAuthRepositoryMysql(db *sql.DB) *AuthRepositoryMysql {
 func (r *AuthRepositoryMysql) GetUserByEmail(
 	ctx context.Context,
 	email string,
-) (*domain.UserCredential, error) {
+) (*models.UserCredential, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
 			user_credentials.email,
 			user_credentials.password_hash,
 			users.id,
-			users.user_status_id,
-			users.name,
-			users.birthdate
+			users.user_status_id
 		FROM main.user_credentials
 		JOIN main.users ON users.user_credential_id = user_credentials.id
 		WHERE user_credentials.email = ?
 	`, email)
 
-	var userCredential domain.UserCredential
+	var userCredential models.UserCredential
 
 	if err := row.Scan(
 		&userCredential.Email,
 		&userCredential.PasswordHash,
 		&userCredential.UserInfo.ID,
 		&userCredential.UserInfo.UserStatusID,
-		&userCredential.UserInfo.Name,
-		&userCredential.UserInfo.Birthdate,
 	); err != nil {
 		return nil, err
 	}
@@ -51,28 +47,28 @@ func (r *AuthRepositoryMysql) GetUserByEmail(
 
 func (r *AuthRepositoryMysql) RegisterUser(
 	ctx context.Context,
-	userCredential *domain.UserCredential,
-) (*domain.UserCredential, error) {
+	registrationData *models.RegistrationData,
+) error {
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer tx.Rollback()
 
 	res, err := tx.ExecContext(
 		ctx,
 		`INSERT INTO main.user_credentials (email, password_hash) VALUES (?, ?)`,
-		userCredential.Email,
-		userCredential.PasswordHash,
+		registrationData.Email,
+		registrationData.PasswordHash,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	userCredentialID, err := res.LastInsertId()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	res, err = tx.ExecContext(
@@ -86,25 +82,17 @@ func (r *AuthRepositoryMysql) RegisterUser(
 		) VALUES (?, ?, ? ,?)
 		`,
 		userCredentialID,
-		userCredential.UserInfo.UserStatusID,
-		userCredential.UserInfo.Name,
-		userCredential.UserInfo.Birthdate,
+		registrationData.UserStatusID,
+		registrationData.Name,
+		registrationData.Birthdate,
 	)
 	if err != nil {
-		return nil, err
-	}
-
-	userID, err := res.LastInsertId()
-	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return err
 	}
 
-	userCredential.ID = userCredentialID
-	userCredential.UserInfo.ID = userID
-
-	return userCredential, nil
+	return nil
 }

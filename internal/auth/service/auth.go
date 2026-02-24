@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
-	"go-gin-ticketing-backend/internal/auth/domain"
+	"go-gin-ticketing-backend/internal/auth/models"
 	authrepository "go-gin-ticketing-backend/internal/auth/repository"
 	"go-gin-ticketing-backend/internal/auth/schemas"
 	"go-gin-ticketing-backend/internal/shared/enums"
+	"go-gin-ticketing-backend/internal/shared/errs"
 	"strconv"
 	"time"
 
@@ -36,55 +36,46 @@ func New(
 	}
 }
 
-func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBody) (*domain.UserCredential, error) {
+func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBody) error {
 
 	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
 
-	user, err := domain.NewUserCredential(
-		int64(enums.EmailConfirmation),
-		body.Name,
-		birthdate,
-		body.Email,
-		string(passwordHash),
-	)
-	if err != nil {
-		return nil, err
+	registrationData := &models.RegistrationData{
+		UserStatusID: int64(enums.Active),
+		Name:         body.Name,
+		Birthdate:    birthdate,
+		Email:        body.Email,
+		PasswordHash: string(passwordHash),
 	}
 
-	return s.authRepository.RegisterUser(ctx, user)
+	return s.authRepository.RegisterUser(ctx, registrationData)
 }
 
 func (s *AuthService) LoginUser(ctx context.Context, body schemas.LoginBody) (string, error) {
 
-	user, err := s.authRepository.GetUserByEmail(ctx, body.Email)
+	userCredential, err := s.authRepository.GetUserByEmail(ctx, body.Email)
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", errs.ErrInvalidCredentials
 	}
 
-	switch user.UserInfo.UserStatusID {
-	case int64(enums.Inactive):
-		return "", errors.New("invalid credentials, inactive account")
-	case int64(enums.PasswordCreation):
-		return "", errors.New("invalid credentials, password creation pending")
-	case int64(enums.EmailConfirmation):
-		return "", errors.New("invalid credentials, email confirmation pending")
-	case int64(enums.DeletedAccount):
-		return "", errors.New("invalid credentials, deleted account")
+	err = s.validateUserStatus(userCredential)
+	if err != nil {
+		return "", err
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(body.Password)) != nil {
-		return "", errors.New("invalid credentials")
+	if bcrypt.CompareHashAndPassword([]byte(userCredential.PasswordHash), []byte(body.Password)) != nil {
+		return "", errs.ErrInvalidCredentials
 	}
 
 	claims := schemas.CustomClaims{
 		Role: "system", // Change this later, setting up all users as role=system
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   strconv.FormatInt(user.UserInfo.ID, 10),
+			Subject:   strconv.FormatInt(userCredential.UserInfo.ID, 10),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.jwtTTL)),
 		},
@@ -113,4 +104,20 @@ func (s *AuthService) HasThisPermission(ctx context.Context, userID int64, userP
 	_, ok := permissionsMap[userPermission]
 
 	return ok, nil
+}
+
+func (s *AuthService) validateUserStatus(userCredential *models.UserCredential) error {
+
+	switch userCredential.UserInfo.UserStatusID {
+	case int64(enums.Inactive):
+		return errs.ErrInactiveUser
+	case int64(enums.EmailConfirmationPending):
+		return errs.ErrUserEmailConfirmationPending
+	case int64(enums.PasswordCreationPending):
+		return errs.ErrUserPasswordCreationPending
+	case int64(enums.Deleted):
+		return errs.ErrDeletedUser
+	}
+
+	return nil
 }
