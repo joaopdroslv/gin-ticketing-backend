@@ -12,7 +12,6 @@ import (
 	"go-gin-ticketing-backend/internal/shared/errs"
 	"go-gin-ticketing-backend/internal/user/dto"
 	"go-gin-ticketing-backend/internal/user/models"
-	"go-gin-ticketing-backend/internal/user/schemas"
 )
 
 type UserRepositoryMysql struct {
@@ -113,7 +112,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 
 func (r *UserRepositoryMysql) CreateUser(
 	ctx context.Context,
-	creationData *dto.CreationData,
+	data *dto.UserCreateData,
 ) (*int64, error) {
 
 	result, err := r.db.ExecContext(ctx,
@@ -123,10 +122,10 @@ func (r *UserRepositoryMysql) CreateUser(
 			users.name,
 			users.birthdate
 		) VALUES (?, ?, ?, ?)`,
-		creationData.UserStatusID,
-		creationData.Email,
-		creationData.Name,
-		creationData.Birthdate,
+		data.UserStatusID,
+		data.Email,
+		data.Name,
+		data.Birthdate,
 	)
 	if err != nil {
 		return nil, err
@@ -143,7 +142,7 @@ func (r *UserRepositoryMysql) CreateUser(
 func (r *UserRepositoryMysql) UpdateUserByID(
 	ctx context.Context,
 	id int64,
-	data schemas.UpdateUserBody,
+	data dto.UserUpdateData,
 ) (*models.User, error) {
 
 	query, args, err := r.formatUpdateUserQuery(id, data)
@@ -170,7 +169,7 @@ func (r *UserRepositoryMysql) UpdateUserByID(
 
 func (r UserRepositoryMysql) formatUpdateUserQuery(
 	id int64,
-	data schemas.UpdateUserBody,
+	data dto.UserUpdateData,
 ) (string, []any, error) {
 
 	fields := []string{}

@@ -81,14 +81,14 @@ func (s *UserService) CreateUser(
 		return nil, err
 	}
 
-	creationData := &dto.CreationData{
+	data := &dto.UserCreateData{
 		UserStatusID: int64(enums.PasswordCreationPending),
 		Name:         body.Name,
 		Birthdate:    birthdate,
 		Email:        body.Email,
 	}
 
-	id, err := s.userRepository.CreateUser(ctx, creationData)
+	id, err := s.userRepository.CreateUser(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +104,24 @@ func (s *UserService) CreateUser(
 func (s *UserService) UpdateUserByID(
 	ctx context.Context,
 	id int64,
-	data schemas.UpdateUserBody,
+	body schemas.UpdateUserBody,
 ) (*schemas.ResponseUser, error) {
+
+	data := &dto.UserUpdateData{}
+
+	if body.Name != nil {
+		data.Name = body.Name
+	}
+	if body.Birthdate != nil {
+		birthdate, err := time.Parse("2006-01-02", *body.Birthdate)
+		if err != nil {
+			return nil, err
+		}
+		data.Birthdate = &birthdate
+	}
+	if body.Email != nil {
+		data.Email = body.Email
+	}
 
 	user, err := s.userRepository.UpdateUserByID(ctx, id, data)
 	if err != nil {

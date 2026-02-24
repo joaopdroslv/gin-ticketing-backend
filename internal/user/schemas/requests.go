@@ -8,6 +8,6 @@ type CreateUserBody struct {
 
 type UpdateUserBody struct {
 	Name      *string `json:"name" binding:"omitempty,min=2"`
+	Birthdate *string `json:"birthdate" binding:"required"`
 	Email     *string `json:"email" binding:"omitempty,email"`
-	Birthdate *string `json:"birthdate" binding:"omitempty,email"`
 }
