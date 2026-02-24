@@ -31,7 +31,13 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	err := h.authService.RegisterUser(c, body)
 	if err != nil {
-		sharedschemas.Failed(c, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, errs.ErrResourceAlreadyExists) {
+			sharedschemas.Failed(c, http.StatusConflict, "this email address is already in use")
+			return
+		}
+
+		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
+		return
 	}
 
 	sharedschemas.OK(c, gin.H{"message": "user registered successfully"})

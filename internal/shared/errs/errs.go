@@ -10,6 +10,8 @@ var (
 	ErrZeroRowsAffected = errors.New("zero rows affected")
 	ErrValidationError  = errors.New("validation error")
 
+	ErrResourceAlreadyExists = errors.New("this resource already exists")
+
 	// Auth
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUnauthorized       = errors.New("unauthorized")

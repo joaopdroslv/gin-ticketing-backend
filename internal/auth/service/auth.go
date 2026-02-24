@@ -39,6 +39,11 @@ func New(
 
 func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBody) error {
 
+	userCredential, err := s.authRepository.GetUserByEmail(ctx, body.Email)
+	if userCredential != nil {
+		return errs.ErrResourceAlreadyExists
+	}
+
 	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
 	if err != nil {
 		return err
