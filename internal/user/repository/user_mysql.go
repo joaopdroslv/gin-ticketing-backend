@@ -142,7 +142,7 @@ func (r *UserRepositoryMysql) CreateUser(
 func (r *UserRepositoryMysql) UpdateUserByID(
 	ctx context.Context,
 	id int64,
-	data dto.UserUpdateData,
+	data *dto.UserUpdateData,
 ) (*models.User, error) {
 
 	query, args, err := r.formatUpdateUserQuery(id, data)
@@ -169,7 +169,7 @@ func (r *UserRepositoryMysql) UpdateUserByID(
 
 func (r UserRepositoryMysql) formatUpdateUserQuery(
 	id int64,
-	data dto.UserUpdateData,
+	data *dto.UserUpdateData,
 ) (string, []any, error) {
 
 	fields := []string{}
