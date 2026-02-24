@@ -10,7 +10,8 @@ import (
 
 	shareddoamin "go-gin-ticketing-backend/internal/shared/domain"
 	"go-gin-ticketing-backend/internal/shared/errs"
-	"go-gin-ticketing-backend/internal/user/domain"
+	"go-gin-ticketing-backend/internal/user/dto"
+	"go-gin-ticketing-backend/internal/user/models"
 	"go-gin-ticketing-backend/internal/user/schemas"
 )
 
@@ -23,7 +24,7 @@ func NewUserRepositoryMysql(db *sql.DB) *UserRepositoryMysql {
 	return &UserRepositoryMysql{db: db}
 }
 
-func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]domain.User, *int64, error) {
+func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *shareddoamin.Pagination) ([]models.User, *int64, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
@@ -45,11 +46,11 @@ func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *share
 	}
 	defer rows.Close()
 
-	users := make([]domain.User, 0)
+	users := make([]models.User, 0)
 	var total int64
 
 	for rows.Next() {
-		var user domain.User
+		var user models.User
 		var totalCount int64
 
 		if err := rows.Scan(
@@ -78,7 +79,7 @@ func (r *UserRepositoryMysql) GetAllUsers(ctx context.Context, pagination *share
 	return users, &total, nil
 }
 
-func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
+func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
@@ -93,7 +94,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*domai
 		WHERE users.id = ?
 	`, id)
 
-	var user domain.User
+	var user models.User
 
 	if err := row.Scan(
 		&user.ID,
@@ -110,7 +111,10 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*domai
 	return &user, nil
 }
 
-func (r *UserRepositoryMysql) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *UserRepositoryMysql) CreateUser(
+	ctx context.Context,
+	creationData *dto.CreationData,
+) (*int64, error) {
 
 	result, err := r.db.ExecContext(ctx,
 		`INSERT INTO users (
@@ -119,7 +123,10 @@ func (r *UserRepositoryMysql) CreateUser(ctx context.Context, user *domain.User)
 			users.name,
 			users.birthdate
 		) VALUES (?, ?, ?, ?)`,
-		user.UserStatusID, user.Email, user.Name, user.Birthdate,
+		creationData.UserStatusID,
+		creationData.Email,
+		creationData.Name,
+		creationData.Birthdate,
 	)
 	if err != nil {
 		return nil, err
@@ -130,12 +137,14 @@ func (r *UserRepositoryMysql) CreateUser(ctx context.Context, user *domain.User)
 		return nil, err
 	}
 
-	user.ID = id
-
-	return user, nil
+	return &id, nil
 }
 
-func (r *UserRepositoryMysql) UpdateUserByID(ctx context.Context, id int64, data schemas.UpdateUserBody) (*domain.User, error) {
+func (r *UserRepositoryMysql) UpdateUserByID(
+	ctx context.Context,
+	id int64,
+	data schemas.UpdateUserBody,
+) (*models.User, error) {
 
 	query, args, err := r.formatUpdateUserQuery(id, data)
 	if err != nil {
@@ -159,7 +168,10 @@ func (r *UserRepositoryMysql) UpdateUserByID(ctx context.Context, id int64, data
 	return r.GetUserByID(ctx, id)
 }
 
-func (r UserRepositoryMysql) formatUpdateUserQuery(id int64, data schemas.UpdateUserBody) (string, []any, error) {
+func (r UserRepositoryMysql) formatUpdateUserQuery(
+	id int64,
+	data schemas.UpdateUserBody,
+) (string, []any, error) {
 
 	fields := []string{}
 	args := []any{}

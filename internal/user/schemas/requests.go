@@ -1,10 +1,9 @@
 package schemas
 
 type CreateUserBody struct {
-	UserStatusID int64  `json:"user_status_id" binding:"required"`
-	Name         string `json:"name" binding:"required"`
-	Email        string `json:"email" binding:"required,email"`
-	Birthdate    string `json:"birthdate" binding:"required"`
+	Name      string `json:"name" binding:"required"`
+	Birthdate string `json:"birthdate" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
 }
 
 type UpdateUserBody struct {
