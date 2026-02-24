@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"go-gin-ticketing-backend/internal/auth/dto"
 	"go-gin-ticketing-backend/internal/auth/models"
 	authrepository "go-gin-ticketing-backend/internal/auth/repository"
 	"go-gin-ticketing-backend/internal/auth/schemas"
@@ -45,7 +46,7 @@ func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBod
 
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
 
-	registrationData := &models.RegistrationData{
+	registrationData := &dto.RegistrationData{
 		UserStatusID: int64(enums.Active),
 		Name:         body.Name,
 		Birthdate:    birthdate,

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"go-gin-ticketing-backend/internal/auth/dto"
 	"go-gin-ticketing-backend/internal/auth/models"
 )
 
@@ -47,7 +48,7 @@ func (r *AuthRepositoryMysql) GetUserByEmail(
 
 func (r *AuthRepositoryMysql) RegisterUser(
 	ctx context.Context,
-	registrationData *models.RegistrationData,
+	registrationData *dto.RegistrationData,
 ) error {
 
 	tx, err := r.db.BeginTx(ctx, nil)
