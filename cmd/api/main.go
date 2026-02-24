@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"go-gin-ticketing-backend/internal/config"
 	"go-gin-ticketing-backend/internal/database"
-
 	"go-gin-ticketing-backend/internal/middlewares"
 
 	authhandler "go-gin-ticketing-backend/internal/auth/handler"
@@ -36,6 +36,18 @@ func main() {
 	r.Use(gin.Recovery())
 	// r.Use(gin.Logger(), gin.Recovery())
 
+	// middlewares
+	jwtMiddleware := middlewares.JWTAuthenticationMiddleware(env.JWTSecret)
+
+	// TODO: move this to env/config?
+	const maxRequests int64 = 10
+	const window time.Duration = time.Minute
+
+	rateLimitMiddleware := middlewares.RateLimitMiddleware(maxRequests, window)
+
+	// All routes covered by the rate limit middleware
+	r.Use(rateLimitMiddleware)
+
 	apiV1Group := r.Group("/api/v1")
 
 	// repositories
@@ -56,9 +68,6 @@ func main() {
 	// handlers
 	authHandler := authhandler.New(authService)
 	userHandler := userhandler.New(logger, userService)
-
-	// middlewares
-	jwtMiddleware := middlewares.JWTAuthenticationMiddleware(env.JWTSecret)
 
 	// routes
 
