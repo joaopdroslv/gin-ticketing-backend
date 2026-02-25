@@ -12,11 +12,11 @@ import (
 	authhandler "go-gin-ticketing-backend/internal/auth/handler"
 	userhandler "go-gin-ticketing-backend/internal/user/handler"
 
-	accessservice "go-gin-ticketing-backend/internal/access_control/service"
+	accesscontrolservice "go-gin-ticketing-backend/internal/access_control/service"
 	authservice "go-gin-ticketing-backend/internal/auth/service"
 	userservice "go-gin-ticketing-backend/internal/user/service"
 
-	accessrepository "go-gin-ticketing-backend/internal/access_control/repository"
+	accesscontrolrepository "go-gin-ticketing-backend/internal/access_control/repository"
 	authrepository "go-gin-ticketing-backend/internal/auth/repository"
 	userrepository "go-gin-ticketing-backend/internal/user/repository"
 
@@ -51,7 +51,7 @@ func main() {
 	userRepo := userrepository.NewUserRepositoryMysql(db)
 	userStatusRepo := userrepository.NewUserStatusRepositoryMysql(db)
 	authRepo := authrepository.NewAuthRepositoryMysql(db)
-	permissionRepo := accessrepository.NewPermissionRepositoryMysql(db)
+	permissionRepo := accesscontrolrepository.NewPermissionRepositoryMysql(db)
 
 	// services
 	userStatusService := userservice.NewUserStatusService(userStatusRepo)
@@ -61,7 +61,7 @@ func main() {
 		log.Fatal("failed to create the user service")
 	}
 	authService := authservice.New(authRepo, env.JWTSecret, env.JWTTTL)
-	permissionService := accessservice.NewPermissionService(permissionRepo)
+	permissionService := accesscontrolservice.NewPermissionService(permissionRepo)
 
 	// handlers
 	authHandler := authhandler.New(authService)

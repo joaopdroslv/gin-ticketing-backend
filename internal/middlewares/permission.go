@@ -1,13 +1,13 @@
 package middlewares
 
 import (
-	accessservice "go-gin-ticketing-backend/internal/access_control/service"
+	accesscontrolservice "go-gin-ticketing-backend/internal/access_control/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 func PermissionMiddleware(
-	accessControl accessservice.AccessControl,
+	accessControl accesscontrolservice.AccessControl,
 	requiredPermission string,
 ) gin.HandlerFunc {
 

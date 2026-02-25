@@ -15,19 +15,65 @@ func NewPermissionRepositoryMysql(db *sql.DB) *PermissionRepositoryMysql {
 	return &PermissionRepositoryMysql{db: db}
 }
 
-func (r *PermissionRepositoryMysql) GetPermissionsByUserID(ctx context.Context, id int64) ([]models.Permission, error) {
+func (r *PermissionRepositoryMysql) GetAllPermissions(
+	ctx context.Context,
+	name string,
+) ([]models.Permission, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
 			permissions.id,
 			permissions.name,
+			permissions.description,
 			permissions.created_at,
 			permissions.updated_at
 		FROM main.permissions
 		JOIN main.role_permissions ON role_permissions.permission_id = permissions.id
-		JOIN main.user_roles ON user_roles.role_id = role_permissions.role_id
-		JOIN main.users ON users.id = user_roles.user_id
-		WHERE users.id = ?
+		JOIN main.roles ON roles.id = role_permissions.role_id
+		WHERE permissions.name LIKE ?
+	`, "%"+name+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var permissions []models.Permission
+
+	for rows.Next() {
+		var permission models.Permission
+
+		if err := rows.Scan(
+			&permission.ID,
+			&permission.Name,
+			&permission.Description,
+			&permission.CreatedAt,
+			&permission.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		permissions = append(permissions, permission)
+	}
+
+	return permissions, nil
+}
+
+func (r *PermissionRepositoryMysql) GetPermissionsByRoleID(
+	ctx context.Context,
+	id int64,
+) ([]models.Permission, error) {
+
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT
+			permissions.id,
+			permissions.name,
+			permissions.description,
+			permissions.created_at,
+			permissions.updated_at
+		FROM main.permissions
+		JOIN main.role_permissions ON role_permissions.permission_id = permissions.id
+		JOIN main.roles ON roles.id = role_permissions.role_id
+		WHERE roles.id = ?
 	`, id)
 	if err != nil {
 		return nil, err
@@ -42,6 +88,7 @@ func (r *PermissionRepositoryMysql) GetPermissionsByUserID(ctx context.Context, 
 		if err := rows.Scan(
 			&permission.ID,
 			&permission.Name,
+			&permission.Description,
 			&permission.CreatedAt,
 			&permission.UpdatedAt,
 		); err != nil {
