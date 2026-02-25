@@ -121,7 +121,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 // DEPRECATED: should create a record in users and user_credentials tables simultaneously
 func (r *UserRepositoryMysql) CreateUser(
 	ctx context.Context,
-	data *dto.UserCreateData,
+	data *dto.CreateUserData,
 ) (*int64, error) {
 
 	result, err := r.db.ExecContext(ctx,
@@ -149,7 +149,7 @@ func (r *UserRepositoryMysql) CreateUser(
 func (r *UserRepositoryMysql) UpdateUserByID(
 	ctx context.Context,
 	id int64,
-	data *dto.UserUpdateData,
+	data *dto.UpdateUserData,
 ) (*models.User, error) {
 
 	query, args, err := r.formatUpdateUserQuery(id, data)
@@ -176,7 +176,7 @@ func (r *UserRepositoryMysql) UpdateUserByID(
 
 func (r UserRepositoryMysql) formatUpdateUserQuery(
 	id int64,
-	data *dto.UserUpdateData,
+	data *dto.UpdateUserData,
 ) (string, []any, error) {
 
 	fields := []string{}

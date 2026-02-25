@@ -11,7 +11,7 @@ import (
 type UserRepository interface {
 	GetAllUsers(ctx context.Context, pagination *shareddomain.Pagination) ([]models.User, *int64, error)
 	GetUserByID(ctx context.Context, id int64) (*models.User, error)
-	CreateUser(ctx context.Context, data *dto.UserCreateData) (*int64, error)
-	UpdateUserByID(ctx context.Context, id int64, data *dto.UserUpdateData) (*models.User, error)
+	CreateUser(ctx context.Context, data *dto.CreateUserData) (*int64, error)
+	UpdateUserByID(ctx context.Context, id int64, data *dto.UpdateUserData) (*models.User, error)
 	DeleteUserByID(ctx context.Context, id int64) (bool, error)
 }

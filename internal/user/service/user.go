@@ -81,7 +81,7 @@ func (s *UserService) CreateUser(
 		return nil, err
 	}
 
-	data := &dto.UserCreateData{
+	data := &dto.CreateUserData{
 		UserStatusID: int64(enums.PasswordCreationPending),
 		Name:         body.Name,
 		Birthdate:    birthdate,
@@ -107,7 +107,7 @@ func (s *UserService) UpdateUserByID(
 	body schemas.UpdateUserBody,
 ) (*schemas.ResponseUser, error) {
 
-	data := &dto.UserUpdateData{}
+	data := &dto.UpdateUserData{}
 
 	if body.Name != nil {
 		data.Name = body.Name
