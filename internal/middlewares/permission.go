@@ -27,8 +27,6 @@ func PermissionMiddleware(
 		}
 		userID := userIDAny.(int64)
 
-		// Skipping scope validation for now
-
 		allowed, err := accessControl.UserHasPermission(
 			c.Request.Context(),
 			int64(userID),

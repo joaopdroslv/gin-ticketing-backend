@@ -192,14 +192,13 @@ CREATE TABLE IF NOT EXISTS user_roles (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id         BIGINT UNSIGNED NOT NULL,
     role_id         BIGINT UNSIGNED NOT NULL,
-    scope_id        BIGINT UNSIGNED DEFAULT NULL, -- Tenant/Project scope, for now it's gonna be null (global)
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
 
-    UNIQUE KEY uk_user_role_scope (user_id, role_id, scope_id)
+    UNIQUE KEY uk_user_role (user_id, role_id)
 );
 
 INSERT INTO main.user_roles (user_id, role_id) VALUES (@system_user_id, @system_role_id);
