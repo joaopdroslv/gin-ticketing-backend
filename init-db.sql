@@ -93,31 +93,6 @@ SET @system_user_id := (
     LIMIT 1
 );
 
-CREATE TABLE IF NOT EXISTS roles (
-    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name            VARCHAR(64) NOT NULL UNIQUE,
-    description     TEXT DEFAULT NULL,
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-INSERT INTO main.roles (
-    name,
-    description
-) VALUES
-    (
-        "system",
-        "A super user role, can perform any action."
-    ),
-    (
-        "common",
-        "Common user, can perform basic ticket operations, like create, read, update and close."
-    )
-;
-
-SET @system_role_id := (SELECT id FROM main.roles WHERE name = "system" LIMIT 1);
-SET @common_role_id := (SELECT id FROM main.roles WHERE name = "common" LIMIT 1);
-
 CREATE TABLE IF NOT EXISTS permissions (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(100) NOT NULL UNIQUE,
@@ -188,6 +163,47 @@ SET @ticket_create := (SELECT id FROM main.permissions WHERE name = "ticket:crea
 SET @ticket_update := (SELECT id FROM main.permissions WHERE name = "ticket:update");
 SET @ticket_close  := (SELECT id FROM main.permissions WHERE name = "ticket:close");
 
+CREATE TABLE IF NOT EXISTS roles (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name            VARCHAR(64) NOT NULL UNIQUE,
+    description     TEXT DEFAULT NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO main.roles (
+    name,
+    description
+) VALUES
+    (
+        "system",
+        "A super user role, can perform any action."
+    ),
+    (
+        "common",
+        "Common user, can perform basic ticket operations, like create, read, update and close."
+    )
+;
+
+SET @system_role_id := (SELECT id FROM main.roles WHERE name = "system" LIMIT 1);
+SET @common_role_id := (SELECT id FROM main.roles WHERE name = "common" LIMIT 1);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT UNSIGNED NOT NULL,
+    role_id         BIGINT UNSIGNED NOT NULL,
+    scope_id        BIGINT UNSIGNED DEFAULT NULL, -- Tenant/Project scope, for now it's gonna be null (global)
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+
+    UNIQUE KEY uk_user_role_scope (user_id, role_id, scope_id)
+);
+
+INSERT INTO main.user_roles (user_id, role_id) VALUES (@system_user_id, @system_role_id);
+
 CREATE TABLE IF NOT EXISTS role_permissions (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     role_id         BIGINT UNSIGNED NOT NULL,
@@ -221,34 +237,3 @@ INSERT INTO main.role_permissions (
     (@system_role_id, @ticket_update),
     (@system_role_id, @ticket_close)
 ;
-
-CREATE TABLE IF NOT EXISTS role_inheritance (
-    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    parent_role_id  BIGINT UNSIGNED NOT NULL,
-    child_role_id   BIGINT UNSIGNED NOT NULL,
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_role_inheritance_parent_role FOREIGN KEY (parent_role_id) REFERENCES roles(id) ON DELETE CASCADE,
-    CONSTRAINT fk_role_inheritance_child_role FOREIGN KEY (child_role_id) REFERENCES roles(id) ON DELETE CASCADE,
-
-    UNIQUE KEY uk_role_inheritance (parent_role_id, child_role_id)
-);
-
--- INSERT INTO role_inheritance (parent_role_id, child_role_id) VALUES (@common_role_id, @system_role_id);
-
-CREATE TABLE IF NOT EXISTS user_roles (
-    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id         BIGINT UNSIGNED NOT NULL,
-    role_id         BIGINT UNSIGNED NOT NULL,
-    scope_id        BIGINT UNSIGNED DEFAULT NULL, -- Tenant/Project scope, for now it's gonna be null (global)
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-
-    UNIQUE KEY uk_user_role_scope (user_id, role_id, scope_id)
-);
-
-INSERT INTO main.user_roles (user_id, role_id) VALUES (@system_user_id, @system_role_id);
