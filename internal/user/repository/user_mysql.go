@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -114,6 +115,9 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrResourceNotFound
+		}
 		return nil, err
 	}
 

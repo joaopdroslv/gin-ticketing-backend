@@ -5,11 +5,11 @@ import "errors"
 var (
 	// General
 	ErrZeroRowsReturned = errors.New("zero rows returned")
-	ErrResourceNotFound = errors.New("resource not found")
 	ErrNothingToUpdate  = errors.New("nothing to update")
 	ErrZeroRowsAffected = errors.New("zero rows affected")
 	ErrValidationError  = errors.New("validation error")
 
+	ErrResourceNotFound      = errors.New("resource not found")
 	ErrResourceAlreadyExists = errors.New("this resource already exists")
 
 	// Auth

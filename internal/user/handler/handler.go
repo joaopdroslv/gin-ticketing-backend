@@ -48,7 +48,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
@@ -80,13 +80,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var body schemas.CreateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	user, err := h.userService.CreateUser(c.Request.Context(), body)
 	if err != nil {
-		sharedschemas.Failed(c, 500, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
 		return
 	}
 
@@ -97,20 +97,20 @@ func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	var body schemas.UpdateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	user, err := h.userService.UpdateUserByID(c.Request.Context(), id, body)
 	if err != nil {
-		sharedschemas.Failed(c, 500, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
 		return
 	}
 
@@ -121,13 +121,13 @@ func (h *UserHandler) DeleteUserByID(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	resp, err := h.userService.DeleteUserByID(c.Request.Context(), id)
 	if err != nil {
-		sharedschemas.Failed(c, http.StatusNotFound, err.Error())
+		sharedschemas.Failed(c, http.StatusNotFound, "sorry, something went wrong")
 		return
 	}
 

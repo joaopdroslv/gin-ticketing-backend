@@ -25,7 +25,7 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 	var body schemas.RegisterBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -48,7 +48,7 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 	var body schemas.LoginBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -64,7 +64,7 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 			return
 		}
 
-		sharedschemas.Failed(c, http.StatusInternalServerError, err.Error())
+		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
 		return
 	}
 
