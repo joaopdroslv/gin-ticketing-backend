@@ -5,7 +5,7 @@ import (
 	"errors"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/user/schemas"
-	userservice "go-gin-ticketing-backend/internal/user/service"
+	"go-gin-ticketing-backend/internal/user/service"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -14,11 +14,11 @@ import (
 )
 
 type UserHandler struct {
-	userService *userservice.UserService
+	userService *service.UserService
 	logger      *slog.Logger
 }
 
-func New(logger *slog.Logger, userService *userservice.UserService) *UserHandler {
+func New(logger *slog.Logger, userService *service.UserService) *UserHandler {
 
 	return &UserHandler{
 		userService: userService,

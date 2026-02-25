@@ -4,7 +4,7 @@ import (
 	"context"
 	"go-gin-ticketing-backend/internal/auth/dto"
 	"go-gin-ticketing-backend/internal/auth/models"
-	authrepository "go-gin-ticketing-backend/internal/auth/repository"
+	"go-gin-ticketing-backend/internal/auth/repository"
 	"go-gin-ticketing-backend/internal/auth/schemas"
 	"go-gin-ticketing-backend/internal/shared/enums"
 	"go-gin-ticketing-backend/internal/shared/errs"
@@ -16,13 +16,13 @@ import (
 )
 
 type AuthService struct {
-	authRepository authrepository.AuthRepository
+	authRepository repository.AuthRepository
 	jwtSecret      []byte
 	jwtTTL         time.Duration
 }
 
 func New(
-	authRepository authrepository.AuthRepository,
+	authRepository repository.AuthRepository,
 	jwtSecret string,
 	jwtTTL int64,
 ) *AuthService {
