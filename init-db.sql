@@ -47,14 +47,14 @@ CREATE TABLE IF NOT EXISTS user_credentials (
 CREATE TABLE IF NOT EXISTS users (
     id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_credential_id  BIGINT UNSIGNED NOT NULL,
-    user_status_id      BIGINT UNSIGNED NOT NULL,
+    user_status_id      BIGINT UNSIGNED NULL,
     name                VARCHAR(128) NOT NULL,
     birthdate           DATE NOT NULL,
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_user_user_credential FOREIGN KEY (user_credential_id) REFERENCES main.user_credentials(id) ON DELETE CASCADE,
-    CONSTRAINT fk_user_user_status FOREIGN KEY (user_status_id) REFERENCES main.user_statuses(id),
+    CONSTRAINT fk_user_user_status FOREIGN KEY (user_status_id) REFERENCES main.user_statuses(id) ON DELETE SET NULL,
 
     UNIQUE KEY uk_user_user_credential (user_credential_id),
     INDEX idx_user_with_status (id, user_status_id)
