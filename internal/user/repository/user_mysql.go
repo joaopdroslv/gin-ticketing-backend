@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -109,6 +110,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 		&user.UserStatusID,
 		&user.Name,
 		&user.Birthdate,
+		&user.Email,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	); err != nil {
@@ -118,23 +120,49 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 	return &user, nil
 }
 
-// DEPRECATED: should create a record in users and user_credentials tables simultaneously
 func (r *UserRepositoryMysql) CreateUser(
 	ctx context.Context,
 	data *dto.CreateUserData,
 ) (*int64, error) {
 
-	result, err := r.db.ExecContext(ctx,
-		`INSERT INTO users (
-			users.user_status_id,
-			users.name,
-			users.birthdate
-		) VALUES (?, ?, ?)`,
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO main.user_credentials (email) VALUES (?)`,
+		data.Email,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	userCredentialID, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err = tx.ExecContext(
+		ctx,
+		`INSERT INTO main.users (
+			user_credential_id,
+			user_status_id,
+			name,
+			birthdate
+		) VALUES (?, ?, ?, ?)`,
+		userCredentialID,
 		data.UserStatusID,
 		data.Name,
 		data.Birthdate,
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -179,34 +207,41 @@ func (r UserRepositoryMysql) formatUpdateUserQuery(
 	data *dto.UpdateUserData,
 ) (string, []any, error) {
 
-	fields := []string{}
+	userFields := []string{}
+	userCredentialFields := []string{}
 	args := []any{}
 
 	if data.Name != nil {
-		fields = append(fields, "users.name = ?")
+		userFields = append(userFields, "users.name = ?")
 		args = append(args, data.Name)
 	}
-
+	if data.Birthdate != nil {
+		userFields = append(userFields, "users.birthdate = ?")
+		args = append(args, data.Birthdate)
+	}
 	if data.Email != nil {
-		fields = append(fields, "users.email = ?")
+		userCredentialFields = append(userCredentialFields, "user_credentials.email = ?")
 		args = append(args, data.Email)
 	}
 
-	if data.Birthdate != nil {
-		fields = append(fields, "users.birthdate = ?")
-		args = append(args, data.Birthdate)
-	}
-
-	if len(fields) == 0 {
+	if len(userFields) == 0 && len(userCredentialFields) == 0 {
 		return "", nil, fmt.Errorf("update user: %w", errs.ErrNothingToUpdate)
 	}
 
-	query := fmt.Sprintf(
-		"UPDATE main.users SET %s WHERE users.id = ?",
-		strings.Join(fields, ", "),
-	)
+	setItems := []string{}
+	setItems = append(setItems, userFields...)
+	setItems = append(setItems, userCredentialFields...)
 
+	query := `UPDATE main.users`
+
+	if len(userCredentialFields) > 0 {
+		query += ` JOIN main.user_credentials ON user_credentials.id = users.user_credential_id`
+	}
+
+	query += fmt.Sprintf(" SET %s WHERE users.id = ?", strings.Join(setItems, ", "))
 	args = append(args, id)
+
+	log.Println(query)
 
 	return query, args, nil
 }
