@@ -1,9 +1,7 @@
-package handler
+package auth
 
 import (
 	"errors"
-	"go-gin-ticketing-backend/internal/auth/schemas"
-	"go-gin-ticketing-backend/internal/auth/service"
 	"go-gin-ticketing-backend/internal/domain"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"net/http"
@@ -12,17 +10,17 @@ import (
 )
 
 type AuthHandler struct {
-	authService *service.AuthService
+	authService *AuthService
 }
 
-func New(authService *service.AuthService) *AuthHandler {
+func NewAuthHandler(authService *AuthService) *AuthHandler {
 
 	return &AuthHandler{authService: authService}
 }
 
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
-	var body schemas.RegisterBody
+	var body RegisterBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")
@@ -45,7 +43,7 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 func (h *AuthHandler) LoginUser(c *gin.Context) {
 
-	var body schemas.LoginBody
+	var body LoginBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")

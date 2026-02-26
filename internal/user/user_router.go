@@ -1,4 +1,4 @@
-package handler
+package user
 
 import (
 	accessservice "go-gin-ticketing-backend/internal/access_control/service"
@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(
+func RegisterUserRoutes(
 	r *gin.RouterGroup,
 	handler *UserHandler,
 	accessControl accessservice.AccessControl,

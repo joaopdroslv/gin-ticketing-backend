@@ -1,14 +1,11 @@
-package service
+package auth
 
 import (
 	"context"
 	"errors"
-	"go-gin-ticketing-backend/internal/auth/dto"
-	"go-gin-ticketing-backend/internal/auth/models"
-	"go-gin-ticketing-backend/internal/auth/repository"
-	"go-gin-ticketing-backend/internal/auth/schemas"
 	"go-gin-ticketing-backend/internal/domain"
 	"go-gin-ticketing-backend/internal/shared/enums"
+	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/shared/utils"
 	"strconv"
 	"time"
@@ -18,13 +15,13 @@ import (
 )
 
 type AuthService struct {
-	authRepository repository.AuthRepository
+	authRepository AuthRepository
 	jwtSecret      []byte
 	jwtTTL         time.Duration
 }
 
-func New(
-	authRepository repository.AuthRepository,
+func NewAuthService(
+	authRepository AuthRepository,
 	jwtSecret string,
 	jwtTTL int64,
 ) *AuthService {
@@ -36,7 +33,7 @@ func New(
 	}
 }
 
-func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBody) error {
+func (s *AuthService) RegisterUser(ctx context.Context, body RegisterBody) error {
 
 	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
 	if err != nil {
@@ -45,7 +42,7 @@ func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBod
 
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
 
-	data := &dto.RegisterUserData{
+	data := &RegisterUserData{
 		UserStatusID: int64(enums.Active),
 		Name:         body.Name,
 		Birthdate:    birthdate,
@@ -64,7 +61,7 @@ func (s *AuthService) RegisterUser(ctx context.Context, body schemas.RegisterBod
 	return nil
 }
 
-func (s *AuthService) LoginUser(ctx context.Context, body schemas.LoginBody) (string, error) {
+func (s *AuthService) LoginUser(ctx context.Context, body LoginBody) (string, error) {
 
 	userCredential, err := s.authRepository.GetUserByEmail(ctx, body.Email)
 	if err != nil {
@@ -84,7 +81,7 @@ func (s *AuthService) LoginUser(ctx context.Context, body schemas.LoginBody) (st
 		return "", domain.ErrInvalidCredentials
 	}
 
-	claims := schemas.CustomClaims{
+	claims := sharedschemas.CustomClaims{
 		Role: "system", // Change this later, setting up all users as role=system
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   strconv.FormatInt(userCredential.UserInfo.ID, 10),
@@ -97,7 +94,7 @@ func (s *AuthService) LoginUser(ctx context.Context, body schemas.LoginBody) (st
 	return token.SignedString(s.jwtSecret)
 }
 
-func (s *AuthService) validateUserStatus(userCredential *models.UserCredential) error {
+func (s *AuthService) validateUserStatus(userCredential *UserCredential) error {
 
 	switch userCredential.UserInfo.UserStatusID {
 	case int64(enums.Inactive):

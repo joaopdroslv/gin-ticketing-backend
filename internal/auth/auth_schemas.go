@@ -1,4 +1,4 @@
-package schemas
+package auth
 
 type LoginBody struct {
 	Email    string

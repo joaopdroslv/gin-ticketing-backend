@@ -1,11 +1,9 @@
-package handler
+package user
 
 import (
 	"errors"
 	"go-gin-ticketing-backend/internal/domain"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
-	"go-gin-ticketing-backend/internal/user/schemas"
-	"go-gin-ticketing-backend/internal/user/service"
 	"net/http"
 	"strconv"
 
@@ -13,10 +11,10 @@ import (
 )
 
 type UserHandler struct {
-	userService *service.UserService
+	userService *UserService
 }
 
-func New(userService *service.UserService) *UserHandler {
+func NewUserHandler(userService *UserService) *UserHandler {
 
 	return &UserHandler{userService: userService}
 }
@@ -63,7 +61,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
 
-	var body schemas.CreateUserBody
+	var body CreateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")
@@ -87,7 +85,7 @@ func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 		return
 	}
 
-	var body schemas.UpdateUserBody
+	var body UpdateUserBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		sharedschemas.Failed(c, http.StatusBadRequest, "invalid request body")

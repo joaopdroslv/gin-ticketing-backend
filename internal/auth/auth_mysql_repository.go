@@ -1,27 +1,25 @@
-package repository
+package auth
 
 import (
 	"context"
 	"database/sql"
 	"errors"
-	"go-gin-ticketing-backend/internal/auth/dto"
-	"go-gin-ticketing-backend/internal/auth/models"
 	"go-gin-ticketing-backend/internal/domain"
 )
 
-type AuthRepositoryMysql struct {
+type AuthMysqlRepository struct {
 	db *sql.DB
 }
 
-func NewAuthRepositoryMysql(db *sql.DB) *AuthRepositoryMysql {
+func NewAuthMysqlRepository(db *sql.DB) *AuthMysqlRepository {
 
-	return &AuthRepositoryMysql{db: db}
+	return &AuthMysqlRepository{db: db}
 }
 
-func (r *AuthRepositoryMysql) GetUserByEmail(
+func (r *AuthMysqlRepository) GetUserByEmail(
 	ctx context.Context,
 	email string,
-) (*models.UserCredential, error) {
+) (*UserCredential, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
@@ -34,7 +32,7 @@ func (r *AuthRepositoryMysql) GetUserByEmail(
 		WHERE user_credentials.email = ?
 	`, email)
 
-	var userCredential models.UserCredential
+	var userCredential UserCredential
 
 	if err := row.Scan(
 		&userCredential.Email,
@@ -51,9 +49,9 @@ func (r *AuthRepositoryMysql) GetUserByEmail(
 	return &userCredential, nil
 }
 
-func (r *AuthRepositoryMysql) RegisterUser(
+func (r *AuthMysqlRepository) RegisterUser(
 	ctx context.Context,
-	data *dto.RegisterUserData,
+	data *RegisterUserData,
 ) error {
 
 	tx, err := r.db.BeginTx(ctx, nil)

@@ -1,4 +1,4 @@
-package repository
+package user
 
 import (
 	"context"
@@ -11,23 +11,21 @@ import (
 	_ "github.com/lib/pq"
 
 	"go-gin-ticketing-backend/internal/domain"
-	"go-gin-ticketing-backend/internal/user/dto"
-	"go-gin-ticketing-backend/internal/user/models"
 )
 
-type UserRepositoryMysql struct {
+type UserMysqlRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepositoryMysql(db *sql.DB) *UserRepositoryMysql {
+func NewUserMysqlRepository(db *sql.DB) *UserMysqlRepository {
 
-	return &UserRepositoryMysql{db: db}
+	return &UserMysqlRepository{db: db}
 }
 
-func (r *UserRepositoryMysql) GetAllUsers(
+func (r *UserMysqlRepository) GetAllUsers(
 	ctx context.Context,
 	pagination *domain.Pagination,
-) ([]models.User, *int64, error) {
+) ([]User, *int64, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
@@ -51,11 +49,11 @@ func (r *UserRepositoryMysql) GetAllUsers(
 	}
 	defer rows.Close()
 
-	users := make([]models.User, 0)
+	users := make([]User, 0)
 	var total int64
 
 	for rows.Next() {
-		var user models.User
+		var user User
 		var totalCount int64
 
 		if err := rows.Scan(
@@ -86,7 +84,49 @@ func (r *UserRepositoryMysql) GetAllUsers(
 	return users, &total, nil
 }
 
-func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
+func (r *UserMysqlRepository) GetAllUserStatuses(ctx context.Context) ([]UserStatus, error) {
+
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT
+			user_statuses.id,
+			user_statuses.name,
+			user_statuses.description,
+			user_statuses.created_at,
+			user_statuses.updated_at
+		FROM main.user_statuses
+		ORDER BY user_statuses.id DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	userStatuses := make([]UserStatus, 0)
+
+	for rows.Next() {
+		var userStatus UserStatus
+
+		if err := rows.Scan(
+			&userStatus.ID,
+			&userStatus.Name,
+			&userStatus.Description,
+			&userStatus.CreatedAt,
+			&userStatus.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		userStatuses = append(userStatuses, userStatus)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userStatuses, nil
+}
+
+func (r *UserMysqlRepository) GetUserByID(ctx context.Context, id int64) (*User, error) {
 
 	row := r.db.QueryRowContext(ctx, `
 		SELECT
@@ -103,7 +143,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 		WHERE users.id = ?
 	`, id)
 
-	var user models.User
+	var user User
 
 	if err := row.Scan(
 		&user.ID,
@@ -124,9 +164,9 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 	return &user, nil
 }
 
-func (r *UserRepositoryMysql) CreateUser(
+func (r *UserMysqlRepository) CreateUser(
 	ctx context.Context,
-	data *dto.CreateUserData,
+	data *CreateUserData,
 ) (*int64, error) {
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -178,11 +218,11 @@ func (r *UserRepositoryMysql) CreateUser(
 	return &id, nil
 }
 
-func (r *UserRepositoryMysql) UpdateUserByID(
+func (r *UserMysqlRepository) UpdateUserByID(
 	ctx context.Context,
 	id int64,
-	data *dto.UpdateUserData,
-) (*models.User, error) {
+	data *UpdateUserData,
+) (*User, error) {
 
 	query, args, err := r.formatUpdateUserQuery(id, data)
 	if err != nil {
@@ -206,9 +246,9 @@ func (r *UserRepositoryMysql) UpdateUserByID(
 	return r.GetUserByID(ctx, id)
 }
 
-func (r UserRepositoryMysql) formatUpdateUserQuery(
+func (r UserMysqlRepository) formatUpdateUserQuery(
 	id int64,
-	data *dto.UpdateUserData,
+	data *UpdateUserData,
 ) (string, []any, error) {
 
 	userFields := []string{}
@@ -250,7 +290,7 @@ func (r UserRepositoryMysql) formatUpdateUserQuery(
 	return query, args, nil
 }
 
-func (r *UserRepositoryMysql) DeleteUserByID(ctx context.Context, id int64) (bool, error) {
+func (r *UserMysqlRepository) DeleteUserByID(ctx context.Context, id int64) (bool, error) {
 
 	result, err := r.db.ExecContext(ctx, `DELETE FROM main.users WHERE users.id = ?`, id)
 	if err != nil {

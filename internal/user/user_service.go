@@ -1,36 +1,26 @@
-package service
+package user
 
 import (
 	"context"
 	"go-gin-ticketing-backend/internal/domain"
 	"go-gin-ticketing-backend/internal/shared/enums"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
-	"go-gin-ticketing-backend/internal/user/dto"
-	"go-gin-ticketing-backend/internal/user/models"
-	userrepository "go-gin-ticketing-backend/internal/user/repository"
-	"go-gin-ticketing-backend/internal/user/schemas"
 	"time"
 )
 
-type UserStatusProvider interface {
-	GetUserStatusesMap(ctx context.Context) (map[int64]string, error)
-}
-
 type UserService struct {
-	userRepository  userrepository.UserRepository
+	userRepository  UserRepository
 	userStatusesMap map[int64]string
 }
 
-func NewUserService(
-	ctx context.Context,
-	userRepository userrepository.UserRepository,
-	userStatusProvider UserStatusProvider,
-) (*UserService, error) {
+func NewUserService(ctx context.Context, userRepository UserRepository) (*UserService, error) {
 
-	userStatusesMap, err := userStatusProvider.GetUserStatusesMap(ctx)
+	userStatuses, err := userRepository.GetAllUserStatuses(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	userStatusesMap := getUserStatusesMap(userStatuses)
 
 	return &UserService{
 		userRepository:  userRepository,
@@ -38,10 +28,21 @@ func NewUserService(
 	}, nil
 }
 
+func getUserStatusesMap(userStatuses []UserStatus) map[int64]string {
+
+	mapping := make(map[int64]string, len(userStatuses))
+
+	for _, st := range userStatuses {
+		mapping[st.ID] = st.Name
+	}
+
+	return mapping
+}
+
 func (s *UserService) GetAllUsers(
 	ctx context.Context,
 	paginationQuery sharedschemas.PaginationQuery,
-) (*schemas.GetAllUsersResponse, error) {
+) (*GetAllUsersResponse, error) {
 
 	pagination := domain.NewPagination(paginationQuery.Page, paginationQuery.Limit)
 
@@ -50,7 +51,7 @@ func (s *UserService) GetAllUsers(
 		return nil, err
 	}
 
-	return &schemas.GetAllUsersResponse{
+	return &GetAllUsersResponse{
 		Items: s.translateUsers(users, s.userStatusesMap),
 		Pagination: sharedschemas.ResponsePagination{
 			Page:      pagination.Page,
@@ -61,7 +62,12 @@ func (s *UserService) GetAllUsers(
 	}, nil
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, id int64) (*schemas.ResponseUser, error) {
+func (s *UserService) GetAllUserStatuses(ctx context.Context) ([]UserStatus, error) {
+
+	return s.userRepository.GetAllUserStatuses(ctx)
+}
+
+func (s *UserService) GetUserByID(ctx context.Context, id int64) (*ResponseUser, error) {
 
 	user, err := s.userRepository.GetUserByID(ctx, id)
 	if err != nil {
@@ -71,17 +77,14 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*schemas.Respo
 	return s.translateUser(user, s.userStatusesMap), nil
 }
 
-func (s *UserService) CreateUser(
-	ctx context.Context,
-	body schemas.CreateUserBody,
-) (*schemas.ResponseUser, error) {
+func (s *UserService) CreateUser(ctx context.Context, body CreateUserBody) (*ResponseUser, error) {
 
 	birthdate, err := time.Parse("2006-01-02", body.Birthdate)
 	if err != nil {
 		return nil, err
 	}
 
-	data := &dto.CreateUserData{
+	data := &CreateUserData{
 		UserStatusID: int64(enums.PasswordCreationPending),
 		Name:         body.Name,
 		Birthdate:    birthdate,
@@ -104,10 +107,10 @@ func (s *UserService) CreateUser(
 func (s *UserService) UpdateUserByID(
 	ctx context.Context,
 	id int64,
-	body schemas.UpdateUserBody,
-) (*schemas.ResponseUser, error) {
+	body UpdateUserBody,
+) (*ResponseUser, error) {
 
-	data := &dto.UpdateUserData{}
+	data := &UpdateUserData{}
 
 	if body.Name != nil {
 		data.Name = body.Name
@@ -131,25 +134,25 @@ func (s *UserService) UpdateUserByID(
 	return s.translateUser(user, s.userStatusesMap), nil
 }
 
-func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*schemas.DeleteUserResponse, error) {
+func (s *UserService) DeleteUserByID(ctx context.Context, id int64) (*DeleteUserResponse, error) {
 
 	success, err := s.userRepository.DeleteUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &schemas.DeleteUserResponse{
+	return &DeleteUserResponse{
 		ID:      id,
 		Deleted: success,
 	}, nil
 }
 
 func (s *UserService) transformUserModelIntoResponseUser(
-	userModel *models.User,
+	userModel *User,
 	userStatusName string,
-) *schemas.ResponseUser {
+) *ResponseUser {
 
-	return &schemas.ResponseUser{
+	return &ResponseUser{
 		ID:         userModel.ID,
 		Name:       userModel.Name,
 		Birthdate:  userModel.Birthdate.Format(time.RFC3339),
@@ -159,19 +162,19 @@ func (s *UserService) transformUserModelIntoResponseUser(
 }
 
 func (s *UserService) translateUser(
-	userModel *models.User,
+	userModel *User,
 	userStatusesMap map[int64]string,
-) *schemas.ResponseUser {
+) *ResponseUser {
 
 	return s.transformUserModelIntoResponseUser(userModel, userStatusesMap[userModel.UserStatusID])
 }
 
 func (s *UserService) translateUsers(
-	userModels []models.User,
+	userModels []User,
 	userStatusesMap map[int64]string,
-) []schemas.ResponseUser {
+) []ResponseUser {
 
-	responseUsers := make([]schemas.ResponseUser, 0, len(userModels))
+	responseUsers := make([]ResponseUser, 0, len(userModels))
 
 	for _, u := range userModels {
 		responseUsers = append(
