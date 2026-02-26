@@ -1,9 +1,9 @@
-package repository
+package accesscontrol
 
 import (
 	"context"
 	"database/sql"
-	"go-gin-ticketing-backend/internal/access_control/models"
+	models "go-gin-ticketing-backend/internal/access_control/models"
 )
 
 type PermissionRepositoryMysql struct {

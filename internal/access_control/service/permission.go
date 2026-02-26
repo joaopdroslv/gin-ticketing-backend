@@ -1,9 +1,9 @@
-package service
+package accesscontrol
 
 import (
 	"context"
-	"go-gin-ticketing-backend/internal/access_control/models"
-	"go-gin-ticketing-backend/internal/access_control/repository"
+	models "go-gin-ticketing-backend/internal/access_control/models"
+	repository "go-gin-ticketing-backend/internal/access_control/repository"
 )
 
 type PermissionService struct {

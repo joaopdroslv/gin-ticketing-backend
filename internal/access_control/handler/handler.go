@@ -1,6 +1,6 @@
-package handler
+package accesscontrol
 
-import "go-gin-ticketing-backend/internal/access_control/service"
+import service "go-gin-ticketing-backend/internal/access_control/service"
 
 type PermissionHandler struct {
 	permissionService service.PermissionService
