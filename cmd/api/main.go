@@ -28,6 +28,7 @@ func main() {
 
 	env := config.NewEnv()
 	logger := config.NewLogger()
+	_ = logger // Ignore it for now
 
 	db, err := database.NewMysql(env.DockerDatabaseURL)
 	if err != nil {
@@ -65,7 +66,7 @@ func main() {
 
 	// handlers
 	authHandler := authhandler.New(authService)
-	userHandler := userhandler.New(logger, userService)
+	userHandler := userhandler.New(userService)
 
 	// routes
 

@@ -1,12 +1,11 @@
 package handler
 
 import (
-	"database/sql"
 	"errors"
+	"go-gin-ticketing-backend/internal/domain"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/user/schemas"
 	"go-gin-ticketing-backend/internal/user/service"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -15,15 +14,11 @@ import (
 
 type UserHandler struct {
 	userService *service.UserService
-	logger      *slog.Logger
 }
 
-func New(logger *slog.Logger, userService *service.UserService) *UserHandler {
+func New(userService *service.UserService) *UserHandler {
 
-	return &UserHandler{
-		userService: userService,
-		logger:      logger,
-	}
+	return &UserHandler{userService: userService}
 }
 
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
@@ -35,13 +30,13 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	}
 	paginationQuery.Normalize()
 
-	resp, err := h.userService.GetAllUsers(c.Request.Context(), paginationQuery)
+	response, err := h.userService.GetAllUsers(c.Request.Context(), paginationQuery)
 	if err != nil {
 		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
 		return
 	}
 
-	sharedschemas.OK(c, &resp)
+	sharedschemas.OK(c, &response)
 }
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
@@ -54,20 +49,11 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	user, err := h.userService.GetUserByID(c.Request.Context(), id)
 	if err != nil {
-		// Do not treat sql in the handler
-		if errors.Is(err, sql.ErrNoRows) {
-			sharedschemas.OK(c, "user not found")
+		if errors.Is(err, domain.ErrUserNotFound) {
+			sharedschemas.OK(c, err.Error())
 			return
 		}
 
-		// TODO: Currently losing the stacktrace,
-		// the error is being considered thrown from the handler
-		// instead of one of the previous layers.
-		h.logger.Error(
-			"get user by id",
-			"error", err,
-			"user_id", id,
-		)
 		sharedschemas.Failed(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -110,6 +96,16 @@ func (h *UserHandler) UpdateUserByID(c *gin.Context) {
 
 	user, err := h.userService.UpdateUserByID(c.Request.Context(), id, body)
 	if err != nil {
+		if errors.Is(err, domain.ErrNothingToUpdate) {
+			sharedschemas.OK(c, err.Error())
+			return
+		}
+
+		if errors.Is(err, domain.ErrUserNotFound) {
+			sharedschemas.Failed(c, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		sharedschemas.Failed(c, http.StatusInternalServerError, "sorry, something went wrong")
 		return
 	}
@@ -127,6 +123,11 @@ func (h *UserHandler) DeleteUserByID(c *gin.Context) {
 
 	resp, err := h.userService.DeleteUserByID(c.Request.Context(), id)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			sharedschemas.Failed(c, http.StatusBadRequest, "user not found")
+			return
+		}
+
 		sharedschemas.Failed(c, http.StatusNotFound, "sorry, something went wrong")
 		return
 	}

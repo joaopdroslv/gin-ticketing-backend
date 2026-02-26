@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	shareddomain "go-gin-ticketing-backend/internal/shared/domain"
+	"go-gin-ticketing-backend/internal/domain"
 	"go-gin-ticketing-backend/internal/shared/enums"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"go-gin-ticketing-backend/internal/user/dto"
@@ -43,7 +43,7 @@ func (s *UserService) GetAllUsers(
 	paginationQuery sharedschemas.PaginationQuery,
 ) (*schemas.GetAllUsersResponse, error) {
 
-	pagination := shareddomain.NewPagination(paginationQuery.Page, paginationQuery.Limit)
+	pagination := domain.NewPagination(paginationQuery.Page, paginationQuery.Limit)
 
 	users, total, err := s.userRepository.GetAllUsers(ctx, pagination)
 	if err != nil {

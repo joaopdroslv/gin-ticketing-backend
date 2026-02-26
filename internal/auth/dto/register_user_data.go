@@ -2,7 +2,7 @@ package dto
 
 import "time"
 
-type RegistrationData struct {
+type RegisterUserData struct {
 	UserStatusID int64
 	Name         string
 	Birthdate    time.Time

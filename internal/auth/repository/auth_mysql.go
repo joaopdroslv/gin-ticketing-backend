@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"go-gin-ticketing-backend/internal/auth/dto"
 	"go-gin-ticketing-backend/internal/auth/models"
+	"go-gin-ticketing-backend/internal/domain"
 )
 
 type AuthRepositoryMysql struct {
@@ -40,6 +42,9 @@ func (r *AuthRepositoryMysql) GetUserByEmail(
 		&userCredential.UserInfo.ID,
 		&userCredential.UserInfo.UserStatusID,
 	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.ErrUserNotFound
+		}
 		return nil, err
 	}
 
@@ -48,7 +53,7 @@ func (r *AuthRepositoryMysql) GetUserByEmail(
 
 func (r *AuthRepositoryMysql) RegisterUser(
 	ctx context.Context,
-	registrationData *dto.RegistrationData,
+	data *dto.RegisterUserData,
 ) error {
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -60,8 +65,8 @@ func (r *AuthRepositoryMysql) RegisterUser(
 	res, err := tx.ExecContext(
 		ctx,
 		`INSERT INTO main.user_credentials (email, password_hash) VALUES (?, ?)`,
-		registrationData.Email,
-		registrationData.PasswordHash,
+		data.Email,
+		data.PasswordHash,
 	)
 	if err != nil {
 		return err
@@ -83,9 +88,9 @@ func (r *AuthRepositoryMysql) RegisterUser(
 		) VALUES (?, ?, ? ,?)
 		`,
 		userCredentialID,
-		registrationData.UserStatusID,
-		registrationData.Name,
-		registrationData.Birthdate,
+		data.UserStatusID,
+		data.Name,
+		data.Birthdate,
 	)
 	if err != nil {
 		return err

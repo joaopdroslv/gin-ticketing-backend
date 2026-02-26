@@ -4,7 +4,7 @@ import (
 	"errors"
 	"go-gin-ticketing-backend/internal/auth/schemas"
 	"go-gin-ticketing-backend/internal/auth/service"
-	"go-gin-ticketing-backend/internal/shared/errs"
+	"go-gin-ticketing-backend/internal/domain"
 	sharedschemas "go-gin-ticketing-backend/internal/shared/schemas"
 	"net/http"
 
@@ -31,7 +31,7 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	err := h.authService.RegisterUser(c, body)
 	if err != nil {
-		if errors.Is(err, errs.ErrResourceAlreadyExists) {
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
 			sharedschemas.Failed(c, http.StatusConflict, "this email address is already in use")
 			return
 		}
@@ -54,12 +54,12 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 
 	token, err := h.authService.LoginUser(c, body)
 	if err != nil {
-		if errors.Is(err, errs.ErrInvalidCredentials) {
+		if errors.Is(err, domain.ErrInvalidCredentials) {
 			sharedschemas.Failed(c, http.StatusUnauthorized, err.Error())
 			return
 		}
 
-		if errs.IsUserStatusRelated(err) {
+		if domain.IsUserStatusRelated(err) {
 			sharedschemas.Failed(c, http.StatusForbidden, err.Error())
 			return
 		}

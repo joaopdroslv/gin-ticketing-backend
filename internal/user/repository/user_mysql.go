@@ -10,8 +10,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	shareddoamin "go-gin-ticketing-backend/internal/shared/domain"
-	"go-gin-ticketing-backend/internal/shared/errs"
+	"go-gin-ticketing-backend/internal/domain"
 	"go-gin-ticketing-backend/internal/user/dto"
 	"go-gin-ticketing-backend/internal/user/models"
 )
@@ -27,7 +26,7 @@ func NewUserRepositoryMysql(db *sql.DB) *UserRepositoryMysql {
 
 func (r *UserRepositoryMysql) GetAllUsers(
 	ctx context.Context,
-	pagination *shareddoamin.Pagination,
+	pagination *domain.Pagination,
 ) ([]models.User, *int64, error) {
 
 	rows, err := r.db.QueryContext(ctx, `
@@ -76,6 +75,7 @@ func (r *UserRepositoryMysql) GetAllUsers(
 		if total == 0 {
 			total = totalCount
 		}
+
 		users = append(users, user)
 	}
 
@@ -116,7 +116,7 @@ func (r *UserRepositoryMysql) GetUserByID(ctx context.Context, id int64) (*model
 		&user.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrResourceNotFound
+			return nil, domain.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (r *UserRepositoryMysql) UpdateUserByID(
 	}
 
 	if rows == 0 {
-		return nil, errs.ErrZeroRowsAffected
+		return nil, domain.ErrUserNotFound
 	}
 
 	return r.GetUserByID(ctx, id)
@@ -229,7 +229,7 @@ func (r UserRepositoryMysql) formatUpdateUserQuery(
 	}
 
 	if len(userFields) == 0 && len(userCredentialFields) == 0 {
-		return "", nil, fmt.Errorf("update user: %w", errs.ErrNothingToUpdate)
+		return "", nil, domain.ErrNothingToUpdate
 	}
 
 	setItems := []string{}
@@ -263,7 +263,7 @@ func (r *UserRepositoryMysql) DeleteUserByID(ctx context.Context, id int64) (boo
 	}
 
 	if rows == 0 {
-		return false, errs.ErrZeroRowsAffected
+		return false, domain.ErrUserNotFound
 	}
 
 	return true, nil

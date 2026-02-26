@@ -1,23 +1,26 @@
-package errs
+package domain
 
 import "errors"
 
 var (
-	// General
+	// Queries
 	ErrZeroRowsReturned = errors.New("zero rows returned")
 	ErrNothingToUpdate  = errors.New("nothing to update")
 	ErrZeroRowsAffected = errors.New("zero rows affected")
-	ErrValidationError  = errors.New("validation error")
 
 	ErrResourceNotFound      = errors.New("resource not found")
 	ErrResourceAlreadyExists = errors.New("this resource already exists")
+
+	// User
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
 
 	// Auth
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUnauthorized       = errors.New("unauthorized")
 	ErrForbidden          = errors.New("forbidden")
 
-	// Account
+	// User Status
 	ErrInactiveUser                 = errors.New("inactive user, cannot login")
 	ErrUserEmailConfirmationPending = errors.New("email confirmation is pending, do it before loggin in")
 	ErrUserPasswordCreationPending  = errors.New("password creation is pending, do it before loggin in")
