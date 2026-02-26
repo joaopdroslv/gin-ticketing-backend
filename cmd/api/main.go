@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
+	accesscontrolrepository "go-gin-ticketing-backend/internal/access_control/repository"
+	accesscontrolservice "go-gin-ticketing-backend/internal/access_control/service"
+	"go-gin-ticketing-backend/internal/api"
+	"go-gin-ticketing-backend/internal/auth"
 	"go-gin-ticketing-backend/internal/config"
 	"go-gin-ticketing-backend/internal/database"
 	"go-gin-ticketing-backend/internal/middlewares"
-
-	accesscontrolrepository "go-gin-ticketing-backend/internal/access_control/repository"
-	accesscontrolservice "go-gin-ticketing-backend/internal/access_control/service"
-
-	"go-gin-ticketing-backend/internal/auth"
 	"go-gin-ticketing-backend/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -34,21 +33,16 @@ func main() {
 	r.Use(gin.Recovery())
 	// r.Use(gin.Logger(), gin.Recovery())
 
-	// middlewares
 	jwtMiddleware := middlewares.JWTAuthenticationMiddleware(env.JWTSecret)
 	rateLimitMiddleware := middlewares.RateLimitMiddleware(env.RequestsPerMinute, time.Minute)
 
 	// All routes covered by the rate limit middleware
 	r.Use(rateLimitMiddleware)
 
-	apiV1Group := r.Group("/api/v1")
-
-	// repositories
 	userRepository := user.NewUserMysqlRepository(db)
 	authRepository := auth.NewAuthMysqlRepository(db)
 	permissionRepository := accesscontrolrepository.NewPermissionRepositoryMysql(db)
 
-	// services
 	ctx := context.Background()
 	userService, err := user.NewUserService(ctx, userRepository)
 	if err != nil {
@@ -57,20 +51,17 @@ func main() {
 	authService := auth.NewAuthService(authRepository, env.JWTSecret, env.JWTTTL)
 	permissionService := accesscontrolservice.NewPermissionService(permissionRepository)
 
-	// handlers
 	authHandler := auth.NewAuthHandler(authService)
 	userHandler := user.NewUserHandler(userService)
 
-	// routes
+	dependencies := api.Dependencies{
+		AuthHandler:       authHandler,
+		UserHandler:       userHandler,
+		JWTMiddleware:     &jwtMiddleware,
+		PermissionService: permissionService,
+	}
 
-	// auth (public)
-	authGroup := apiV1Group.Group("/auth")
-	auth.RegisterAuthRoutes(authGroup, authHandler, env.JWTSecret)
-
-	// users (protected)
-	userGroup := apiV1Group.Group("/users")
-	userGroup.Use(jwtMiddleware)
-	user.RegisterUserRoutes(userGroup, userHandler, permissionService)
+	api.Register(r, dependencies)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "Ok"})
